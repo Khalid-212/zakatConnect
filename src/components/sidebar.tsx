@@ -11,6 +11,9 @@ import {
   BarChart4,
   Settings,
   LogOut,
+  UserCog,
+  ShoppingBag,
+  FileBarChart,
 } from "lucide-react";
 import { createClient } from "../../supabase/client";
 import { useRouter } from "next/navigation";
@@ -85,6 +88,30 @@ export default function Sidebar() {
           >
             <Package className="h-5 w-5" />
             Distributions
+          </Link>
+
+          <Link
+            href="/products"
+            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${isActive("/products") ? "bg-blue-50 text-primary" : "text-gray-700 hover:bg-gray-100"}`}
+          >
+            <ShoppingBag className="h-5 w-5" />
+            Products
+          </Link>
+
+          <Link
+            href="/staff"
+            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${isActive("/staff") ? "bg-blue-50 text-primary" : "text-gray-700 hover:bg-gray-100"}`}
+          >
+            <UserCog className="h-5 w-5" />
+            Staff
+          </Link>
+
+          <Link
+            href="/reports"
+            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${isActive("/reports") ? "bg-blue-50 text-primary" : "text-gray-700 hover:bg-gray-100"}`}
+          >
+            <FileBarChart className="h-5 w-5" />
+            Reports
           </Link>
 
           <Link

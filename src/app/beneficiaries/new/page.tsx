@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
+import { createBeneficiary } from "./actions";
 import {
   Select,
   SelectContent,
@@ -48,38 +49,63 @@ export default async function NewBeneficiaryPage() {
 
           {/* Form */}
           <div className="bg-white rounded-lg border p-6">
-            <form className="space-y-6">
+            <form action={createBeneficiary} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
-                  <Input id="name" placeholder="Enter full name" />
+                  <Input
+                    id="name"
+                    name="name"
+                    placeholder="Enter full name"
+                    required
+                  />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="poor">Poor (Fuqara)</SelectItem>
-                      <SelectItem value="needy">Needy (Masakeen)</SelectItem>
-                      <SelectItem value="debt">In Debt (Gharimeen)</SelectItem>
-                      <SelectItem value="wayfarer">
-                        Wayfarer (Ibn al-Sabeel)
-                      </SelectItem>
-                      <SelectItem value="convert">
-                        New Muslim (Muallaf)
-                      </SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="region">Region</Label>
+                  <Input
+                    id="region"
+                    name="region"
+                    placeholder="Enter region"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="city">City</Label>
+                  <Input
+                    id="city"
+                    name="city"
+                    placeholder="Enter city"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="sub_city">Sub-City</Label>
+                  <Input
+                    id="sub_city"
+                    name="sub_city"
+                    placeholder="Enter sub-city"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="woreda">Woreda</Label>
+                  <Input
+                    id="woreda"
+                    name="woreda"
+                    placeholder="Enter woreda"
+                    required
+                  />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="email">Email Address</Label>
                   <Input
                     id="email"
+                    name="email"
                     type="email"
                     placeholder="Enter email address"
                   />
@@ -87,18 +113,33 @@ export default async function NewBeneficiaryPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number</Label>
-                  <Input id="phone" placeholder="Enter phone number" />
+                  <Input
+                    id="phone"
+                    name="phone"
+                    placeholder="Enter phone number"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="family_members">
+                    Number of Family Members
+                  </Label>
+                  <Input
+                    id="family_members"
+                    name="family_members"
+                    type="number"
+                    placeholder="Enter number of family members"
+                    required
+                    defaultValue="1"
+                  />
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Input id="address" placeholder="Enter address" />
-                </div>
-
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="notes">Notes</Label>
+                  <Label htmlFor="remark">Remark</Label>
                   <Textarea
-                    id="notes"
+                    id="remark"
+                    name="remark"
                     placeholder="Add any additional information"
                     rows={4}
                   />
@@ -106,9 +147,11 @@ export default async function NewBeneficiaryPage() {
               </div>
 
               <div className="flex justify-end gap-3 pt-4">
-                <Button variant="outline" type="button">
-                  Cancel
-                </Button>
+                <Link href="/beneficiaries">
+                  <Button variant="outline" type="button">
+                    Cancel
+                  </Button>
+                </Link>
                 <Button type="submit">Register Beneficiary</Button>
               </div>
             </form>

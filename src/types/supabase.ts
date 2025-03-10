@@ -13,8 +13,10 @@ export type Database = {
         Row: {
           address: string | null
           category: string
+          code: string | null
           created_at: string | null
           email: string | null
+          family_members: number | null
           id: string
           name: string
           notes: string | null
@@ -24,8 +26,10 @@ export type Database = {
         Insert: {
           address?: string | null
           category: string
+          code?: string | null
           created_at?: string | null
           email?: string | null
+          family_members?: number | null
           id?: string
           name: string
           notes?: string | null
@@ -35,8 +39,10 @@ export type Database = {
         Update: {
           address?: string | null
           category?: string
+          code?: string | null
           created_at?: string | null
           email?: string | null
+          family_members?: number | null
           id?: string
           name?: string
           notes?: string | null
@@ -50,6 +56,7 @@ export type Database = {
           address: string | null
           created_at: string | null
           email: string | null
+          family_members: number | null
           id: string
           name: string
           phone: string | null
@@ -59,6 +66,7 @@ export type Database = {
           address?: string | null
           created_at?: string | null
           email?: string | null
+          family_members?: number | null
           id?: string
           name: string
           phone?: string | null
@@ -68,6 +76,7 @@ export type Database = {
           address?: string | null
           created_at?: string | null
           email?: string | null
+          family_members?: number | null
           id?: string
           name?: string
           phone?: string | null
@@ -159,6 +168,33 @@ export type Database = {
         }
         Relationships: []
       }
+      product_types: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          price: number
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          price: number
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          price?: number
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           avatar_url: string | null
@@ -169,6 +205,7 @@ export type Database = {
           id: string
           image: string | null
           name: string | null
+          role: string | null
           subscription: string | null
           token_identifier: string
           updated_at: string | null
@@ -183,6 +220,7 @@ export type Database = {
           id: string
           image?: string | null
           name?: string | null
+          role?: string | null
           subscription?: string | null
           token_identifier: string
           updated_at?: string | null
@@ -197,6 +235,7 @@ export type Database = {
           id?: string
           image?: string | null
           name?: string | null
+          role?: string | null
           subscription?: string | null
           token_identifier?: string
           updated_at?: string | null
@@ -214,6 +253,7 @@ export type Database = {
           giver_id: string | null
           id: string
           mosque_id: string
+          product_type_id: string | null
           type: string
           updated_at: string | null
         }
@@ -226,6 +266,7 @@ export type Database = {
           giver_id?: string | null
           id?: string
           mosque_id: string
+          product_type_id?: string | null
           type: string
           updated_at?: string | null
         }
@@ -238,6 +279,7 @@ export type Database = {
           giver_id?: string | null
           id?: string
           mosque_id?: string
+          product_type_id?: string | null
           type?: string
           updated_at?: string | null
         }
@@ -263,6 +305,13 @@ export type Database = {
             referencedRelation: "mosques"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "zakat_collections_product_type_id_fkey"
+            columns: ["product_type_id"]
+            isOneToOne: false
+            referencedRelation: "product_types"
+            referencedColumns: ["id"]
+          },
         ]
       }
       zakat_distributions: {
@@ -275,6 +324,7 @@ export type Database = {
           distribution_date: string | null
           id: string
           mosque_id: string
+          status: string | null
           type: string
           updated_at: string | null
         }
@@ -287,6 +337,7 @@ export type Database = {
           distribution_date?: string | null
           id?: string
           mosque_id: string
+          status?: string | null
           type: string
           updated_at?: string | null
         }
@@ -299,6 +350,7 @@ export type Database = {
           distribution_date?: string | null
           id?: string
           mosque_id?: string
+          status?: string | null
           type?: string
           updated_at?: string | null
         }

@@ -4,6 +4,7 @@ import Sidebar from "@/components/sidebar";
 import { Button } from "@/components/ui/button";
 import { UsersRound, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import Link from "next/link";
 
 export default async function GiversPage() {
   const supabase = await createClient();
@@ -22,6 +23,22 @@ export default async function GiversPage() {
     .select("*")
     .order("created_at", { ascending: false });
 
+  // Fetch total donations for each giver
+  const giverIds = givers?.map((giver) => giver.id) || [];
+  const { data: donations } = await supabase
+    .from("zakat_collections")
+    .select("giver_id, amount")
+    .in("giver_id", giverIds);
+
+  // Calculate total donations per giver
+  const totalDonations = {};
+  donations?.forEach((donation) => {
+    if (donation.giver_id) {
+      totalDonations[donation.giver_id] =
+        (totalDonations[donation.giver_id] || 0) + donation.amount;
+    }
+  });
+
   return (
     <div className="flex h-screen">
       <Sidebar />
@@ -35,10 +52,12 @@ export default async function GiversPage() {
                 Manage zakat givers and donors
               </p>
             </div>
-            <Button className="flex items-center gap-2">
-              <Plus size={16} />
-              Add Giver
-            </Button>
+            <Link href="/givers/new">
+              <Button className="flex items-center gap-2">
+                <Plus size={16} />
+                Add Giver
+              </Button>
+            </Link>
           </div>
 
           {/* Search and Filter */}
@@ -80,7 +99,7 @@ export default async function GiversPage() {
                   <div className="text-gray-600">{giver.address || "N/A"}</div>
                   <div>
                     <span className="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full">
-                      0 ETB
+                      {totalDonations[giver.id]?.toFixed(2) || "0"} ETB
                     </span>
                   </div>
                   <div>
