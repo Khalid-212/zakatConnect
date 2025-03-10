@@ -77,12 +77,17 @@ export default async function StaffPage() {
                       <span className="font-medium">{staff.name}</span>
                     </div>
                     <div className="text-gray-600">{staff.email}</div>
-                    <div>
+                    <div className="flex flex-col gap-1">
                       <span
                         className={`text-xs px-2 py-1 rounded-full ${staff.role === "clerk" ? "bg-blue-100 text-blue-600" : "bg-purple-100 text-purple-600"}`}
                       >
                         {staff.role || "clerk"}
                       </span>
+                      {staff.staff_code && (
+                        <span className="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full">
+                          Code: {staff.staff_code}
+                        </span>
+                      )}
                     </div>
                     <div className="text-gray-600">
                       {new Date(staff.created_at).toLocaleDateString()}

@@ -97,10 +97,15 @@ export default async function GiversPage() {
                     {giver.email || giver.phone || "N/A"}
                   </div>
                   <div className="text-gray-600">{giver.address || "N/A"}</div>
-                  <div>
+                  <div className="flex flex-col gap-1">
                     <span className="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full">
                       {totalDonations[giver.id]?.toFixed(2) || "0"} ETB
                     </span>
+                    {giver.code && (
+                      <span className="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full">
+                        Code: {giver.code}
+                      </span>
+                    )}
                   </div>
                   <div>
                     <Button variant="ghost" size="sm" className="text-primary">

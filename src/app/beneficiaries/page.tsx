@@ -120,7 +120,13 @@ export default async function BeneficiariesPage() {
                       </div>
                     </div>
                     <div className="text-gray-600 font-medium">
-                      {beneficiary.code || "N/A"}
+                      {beneficiary.code ? (
+                        <span className="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full">
+                          {beneficiary.code}
+                        </span>
+                      ) : (
+                        "N/A"
+                      )}
                     </div>
                     <div className="text-gray-600">
                       {beneficiary.city}, {beneficiary.region}

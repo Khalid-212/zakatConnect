@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   Building2 as Mosque,
   Home,
@@ -17,11 +18,13 @@ import {
 } from "lucide-react";
 import { createClient } from "../../supabase/client";
 import { useRouter } from "next/navigation";
+import { useAuthRole } from "@/hooks/use-auth-role";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const supabase = createClient();
   const router = useRouter();
+  const { userRole, isLoading } = useAuthRole();
 
   const isActive = (path: string) => {
     return pathname === path;
@@ -50,14 +53,18 @@ export default function Sidebar() {
             Dashboard
           </Link>
 
-          <Link
-            href="/mosques"
-            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${isActive("/mosques") ? "bg-blue-50 text-primary" : "text-gray-700 hover:bg-gray-100"}`}
-          >
-            <Mosque className="h-5 w-5" />
-            Mosques
-          </Link>
+          {/* Super Admin and Admin can see Mosques */}
+          {(userRole === "super-admin" || userRole === "admin") && (
+            <Link
+              href="/mosques"
+              className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${isActive("/mosques") ? "bg-blue-50 text-primary" : "text-gray-700 hover:bg-gray-100"}`}
+            >
+              <Mosque className="h-5 w-5" />
+              Mosques
+            </Link>
+          )}
 
+          {/* All roles can see Beneficiaries */}
           <Link
             href="/beneficiaries"
             className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${isActive("/beneficiaries") ? "bg-blue-50 text-primary" : "text-gray-700 hover:bg-gray-100"}`}
@@ -66,6 +73,7 @@ export default function Sidebar() {
             Beneficiaries
           </Link>
 
+          {/* All roles can see Givers */}
           <Link
             href="/givers"
             className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${isActive("/givers") ? "bg-blue-50 text-primary" : "text-gray-700 hover:bg-gray-100"}`}
@@ -74,14 +82,7 @@ export default function Sidebar() {
             Givers
           </Link>
 
-          <Link
-            href="/collections"
-            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${isActive("/collections") ? "bg-blue-50 text-primary" : "text-gray-700 hover:bg-gray-100"}`}
-          >
-            <FileText className="h-5 w-5" />
-            Collections
-          </Link>
-
+          {/* All roles can see Distributions */}
           <Link
             href="/distributions"
             className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${isActive("/distributions") ? "bg-blue-50 text-primary" : "text-gray-700 hover:bg-gray-100"}`}
@@ -90,37 +91,49 @@ export default function Sidebar() {
             Distributions
           </Link>
 
-          <Link
-            href="/products"
-            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${isActive("/products") ? "bg-blue-50 text-primary" : "text-gray-700 hover:bg-gray-100"}`}
-          >
-            <ShoppingBag className="h-5 w-5" />
-            Products
-          </Link>
+          {/* Super Admin and Admin can see Products */}
+          {(userRole === "super-admin" || userRole === "admin") && (
+            <Link
+              href="/products"
+              className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${isActive("/products") ? "bg-blue-50 text-primary" : "text-gray-700 hover:bg-gray-100"}`}
+            >
+              <ShoppingBag className="h-5 w-5" />
+              Products
+            </Link>
+          )}
 
-          <Link
-            href="/staff"
-            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${isActive("/staff") ? "bg-blue-50 text-primary" : "text-gray-700 hover:bg-gray-100"}`}
-          >
-            <UserCog className="h-5 w-5" />
-            Staff
-          </Link>
+          {/* Super Admin and Admin can see Staff */}
+          {(userRole === "super-admin" || userRole === "admin") && (
+            <Link
+              href="/staff"
+              className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${isActive("/staff") ? "bg-blue-50 text-primary" : "text-gray-700 hover:bg-gray-100"}`}
+            >
+              <UserCog className="h-5 w-5" />
+              Staff
+            </Link>
+          )}
 
-          <Link
-            href="/reports"
-            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${isActive("/reports") ? "bg-blue-50 text-primary" : "text-gray-700 hover:bg-gray-100"}`}
-          >
-            <FileBarChart className="h-5 w-5" />
-            Reports
-          </Link>
+          {/* Super Admin can see Reports */}
+          {userRole === "super-admin" && (
+            <Link
+              href="/reports"
+              className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${isActive("/reports") ? "bg-blue-50 text-primary" : "text-gray-700 hover:bg-gray-100"}`}
+            >
+              <FileBarChart className="h-5 w-5" />
+              Reports
+            </Link>
+          )}
 
-          <Link
-            href="/analytics"
-            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${isActive("/analytics") ? "bg-blue-50 text-primary" : "text-gray-700 hover:bg-gray-100"}`}
-          >
-            <BarChart4 className="h-5 w-5" />
-            Analytics
-          </Link>
+          {/* Super Admin can see Analytics */}
+          {userRole === "super-admin" && (
+            <Link
+              href="/analytics"
+              className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${isActive("/analytics") ? "bg-blue-50 text-primary" : "text-gray-700 hover:bg-gray-100"}`}
+            >
+              <BarChart4 className="h-5 w-5" />
+              Analytics
+            </Link>
+          )}
         </nav>
       </div>
 

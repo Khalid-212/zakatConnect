@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import { createClient } from "../../../supabase/client-server";
-import AnalyticsClient from "./analytics-client";
+import { createClient } from "../../../supabase/server";
+import AnalyticsPage from "./page";
 
-export default async function AnalyticsPage() {
+export default async function AnalyticsPageServer() {
   const supabase = await createClient();
 
   const {
@@ -36,7 +36,9 @@ export default async function AnalyticsPage() {
   );
 
   return (
-    <AnalyticsClient
+    <AnalyticsPage
+      initialCollections={collections || []}
+      initialDistributions={distributions || []}
       totalCollected={totalCollected}
       totalDistributed={totalDistributed}
       balance={balance}
@@ -52,7 +54,6 @@ function processMonthlyData(collections, distributions) {
 
   // Process collections
   collections.forEach((item) => {
-    if (!item.collection_date) return;
     const date = new Date(item.collection_date);
     const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
 
@@ -64,7 +65,6 @@ function processMonthlyData(collections, distributions) {
 
   // Process distributions
   distributions.forEach((item) => {
-    if (!item.distribution_date) return;
     const date = new Date(item.distribution_date);
     const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
 

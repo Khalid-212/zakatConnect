@@ -1,7 +1,9 @@
 import { createClient } from "../../../supabase/server";
 import { redirect } from "next/navigation";
 
-export async function checkUserRole(allowedRoles: string[]) {
+export async function checkUserRole(
+  allowedRoles: ("super-admin" | "admin" | "clerk")[],
+) {
   const supabase = await createClient();
 
   const {

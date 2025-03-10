@@ -12,7 +12,6 @@ export type Database = {
       beneficiaries: {
         Row: {
           address: string | null
-          category: string
           city: string | null
           code: string | null
           created_at: string | null
@@ -24,13 +23,13 @@ export type Database = {
           phone: string | null
           region: string | null
           remark: string | null
+          status: string | null
           sub_city: string | null
           updated_at: string | null
           woreda: string | null
         }
         Insert: {
           address?: string | null
-          category: string
           city?: string | null
           code?: string | null
           created_at?: string | null
@@ -42,13 +41,13 @@ export type Database = {
           phone?: string | null
           region?: string | null
           remark?: string | null
+          status?: string | null
           sub_city?: string | null
           updated_at?: string | null
           woreda?: string | null
         }
         Update: {
           address?: string | null
-          category?: string
           city?: string | null
           code?: string | null
           created_at?: string | null
@@ -60,6 +59,7 @@ export type Database = {
           phone?: string | null
           region?: string | null
           remark?: string | null
+          status?: string | null
           sub_city?: string | null
           updated_at?: string | null
           woreda?: string | null
@@ -69,35 +69,49 @@ export type Database = {
       givers: {
         Row: {
           address: string | null
+          code: string | null
           created_at: string | null
           email: string | null
           family_members: number | null
           id: string
+          mosque_id: string | null
           name: string
           phone: string | null
           updated_at: string | null
         }
         Insert: {
           address?: string | null
+          code?: string | null
           created_at?: string | null
           email?: string | null
           family_members?: number | null
           id?: string
+          mosque_id?: string | null
           name: string
           phone?: string | null
           updated_at?: string | null
         }
         Update: {
           address?: string | null
+          code?: string | null
           created_at?: string | null
           email?: string | null
           family_members?: number | null
           id?: string
+          mosque_id?: string | null
           name?: string
           phone?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "givers_mosque_id_fkey"
+            columns: ["mosque_id"]
+            isOneToOne: false
+            referencedRelation: "mosques"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mosque_admins: {
         Row: {
@@ -145,40 +159,52 @@ export type Database = {
         Row: {
           address: string | null
           city: string | null
+          contact_person: string | null
+          contact_phone: string | null
           created_at: string | null
           email: string | null
           id: string
           name: string
           phone: string | null
           state: string | null
+          sub_city: string | null
           updated_at: string | null
           website: string | null
+          woreda: string | null
           zip: string | null
         }
         Insert: {
           address?: string | null
           city?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
           created_at?: string | null
           email?: string | null
           id?: string
           name: string
           phone?: string | null
           state?: string | null
+          sub_city?: string | null
           updated_at?: string | null
           website?: string | null
+          woreda?: string | null
           zip?: string | null
         }
         Update: {
           address?: string | null
           city?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
           created_at?: string | null
           email?: string | null
           id?: string
           name?: string
           phone?: string | null
           state?: string | null
+          sub_city?: string | null
           updated_at?: string | null
           website?: string | null
+          woreda?: string | null
           zip?: string | null
         }
         Relationships: []
@@ -221,6 +247,7 @@ export type Database = {
           image: string | null
           name: string | null
           role: string | null
+          staff_code: string | null
           subscription: string | null
           token_identifier: string
           updated_at: string | null
@@ -236,6 +263,7 @@ export type Database = {
           image?: string | null
           name?: string | null
           role?: string | null
+          staff_code?: string | null
           subscription?: string | null
           token_identifier: string
           updated_at?: string | null
@@ -251,6 +279,7 @@ export type Database = {
           image?: string | null
           name?: string | null
           role?: string | null
+          staff_code?: string | null
           subscription?: string | null
           token_identifier?: string
           updated_at?: string | null
@@ -401,7 +430,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role: "super-admin" | "admin" | "clerk"
     }
     CompositeTypes: {
       [_ in never]: never

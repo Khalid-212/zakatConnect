@@ -117,6 +117,8 @@ export async function createMosque(formData: FormData) {
         user_id: userId,
         mosque_id: mosque.id,
         role: "admin",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       });
 
     if (mosqueAdminError) {
