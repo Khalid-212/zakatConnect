@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { createClient } from "../../../../supabase/client";
 
 interface Mosque {
@@ -39,10 +39,56 @@ export default function NewBeneficiaryPage() {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [selectedMosqueId, setSelectedMosqueId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [wheatPrice, setWheatPrice] = useState<number>(0);
+  const [familyMembers, setFamilyMembers] = useState<number>(1);
+  const [calculatedAmount, setCalculatedAmount] = useState<number>(0);
+  const [beneficiaryCode, setBeneficiaryCode] = useState<string>("");
   const supabase = createClient();
 
+  // Generate a unique beneficiary code
+  const generateBeneficiaryCode = useCallback(async () => {
+    const timestamp = Date.now().toString().slice(-6);
+    const randomPart = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
+    const code = `BEN-${timestamp}-${randomPart}`;
+    
+    // Check if code already exists
+    const { data } = await supabase
+      .from("beneficiaries")
+      .select("id")
+      .eq("code", code)
+      .single();
+      
+    if (data) {
+      // Code exists, try again
+      return generateBeneficiaryCode();
+    }
+    
+    return code;
+  }, [supabase]);
+  
+  // Calculate donation amount based on family members and wheat price
+  useEffect(() => {
+    const amount = familyMembers * 2.5 * wheatPrice;
+    setCalculatedAmount(amount);
+  }, [familyMembers, wheatPrice]);
+  
   useEffect(() => {
     async function loadData() {
+      try {
+        // Generate unique code
+        const code = await generateBeneficiaryCode();
+        setBeneficiaryCode(code);
+        
+        // Get wheat price
+        const { data: wheatProduct } = await supabase
+          .from("product_types")
+          .select("price")
+          .eq("name", "Wheat")
+          .single();
+          
+        if (wheatProduct) {
+          setWheatPrice(wheatProduct.price);
+        }
       try {
         // Get user role
         const {
@@ -99,7 +145,7 @@ export default function NewBeneficiaryPage() {
     }
 
     loadData();
-  }, []);
+  }, [generateBeneficiaryCode]);
 
   async function handleSubmit(formData: FormData) {
     // Create a new FormData object
@@ -109,6 +155,10 @@ export default function NewBeneficiaryPage() {
     Array.from(formData.entries()).forEach(([key, value]) => {
       updatedFormData.append(key, value);
     });
+    
+    // Add the beneficiary code and calculated amount
+    updatedFormData.append("code", beneficiaryCode);
+    updatedFormData.append("amount", calculatedAmount.toString());
 
     if (userRole === "super-admin") {
       const selectedMosque = formData.get("mosque_id");
@@ -273,9 +323,31 @@ export default function NewBeneficiaryPage() {
                     placeholder="Enter number of family members"
                     required
                     defaultValue="1"
+                    onChange={(e) => setFamilyMembers(parseInt(e.target.value) || 1)}
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="calculated_amount">Calculated Amount (ETB)</Label>
+                  <Input
+                    id="calculated_amount"
+                    value={calculatedAmount.toFixed(2)}
+                    readOnly
+                    className="bg-gray-50"
+                  />
+                  <p className="text-xs text-muted-foreground">Based on family members × 2.5 × wheat price</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="beneficiary_code">Beneficiary Code</Label>
+                  <Input
+                    id="beneficiary_code"
+                    value={beneficiaryCode}
+                    readOnly
+                    className="bg-gray-50"
+                  />
+                </div>
+                
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="remark">Remark</Label>
                   <Textarea

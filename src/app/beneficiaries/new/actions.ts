@@ -55,6 +55,8 @@ export async function createBeneficiary(formData: FormData) {
       family_members: parseInt(formData.get("family_members") as string),
       remark: formData.get("remark") || null,
       mosque_id: mosqueId,
+      code: formData.get("code"),
+      status: "pending",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -71,7 +73,7 @@ export async function createBeneficiary(formData: FormData) {
 
     // Revalidate the beneficiaries page to show the new data
     revalidatePath("/beneficiaries");
-    
+
     return { success: "Beneficiary registered successfully" };
   } catch (error) {
     console.error("Error in createBeneficiary:", error);

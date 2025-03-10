@@ -75,6 +75,8 @@ export async function createStaffMember(formData: FormData) {
         user_id: authUser.user.id,
         mosque_id: mosqueId,
         role: role,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       });
 
     if (mosqueAdminError) {

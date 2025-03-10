@@ -20,24 +20,20 @@ import {
 // Define colors for the pie chart
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
-// Define category data
-const CATEGORIES = [
-  { name: "Poor (Fuqara)", value: 45, color: "#0088FE" },
-  { name: "Needy (Masakeen)", value: 30, color: "#00C49F" },
-  { name: "In Debt (Gharimeen)", value: 15, color: "#FFBB28" },
-  { name: "Other Categories", value: 10, color: "#FF8042" },
-];
+// Product type distribution will be passed as props
 
 export default function AnalyticsClient({
   totalCollected,
   totalDistributed,
   balance,
   monthlyData,
+  productDistribution,
 }: {
   totalCollected: number;
   totalDistributed: number;
   balance: number;
   monthlyData: any[];
+  productDistribution: { name: string; value: number; color: string }[];
 }) {
   return (
     <div className="flex h-screen">
@@ -178,7 +174,7 @@ export default function AnalyticsClient({
                         `${name}: ${(percent * 100).toFixed(0)}%`
                       }
                     >
-                      {CATEGORIES.map((entry, index) => (
+                      {productDistribution.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -187,7 +183,7 @@ export default function AnalyticsClient({
                 </ResponsiveContainer>
               </div>
               <div className="space-y-4">
-                {CATEGORIES.map((category, index) => (
+                {productDistribution.map((category, index) => (
                   <div
                     key={index}
                     className="flex justify-between items-center p-3 border rounded-lg"

@@ -16,18 +16,86 @@ export default async function AnalyticsPage() {
   // Fetch analytics data
   const { data: collections, error: collectionsError } = await supabase
     .from("zakat_collections")
-    .select("amount, type, collection_date");
+    .select(
+      "amount, type, collection_date, product_type_id, product_types(name)",
+    );
 
   const { data: distributions, error: distributionsError } = await supabase
     .from("zakat_distributions")
     .select("amount, type, distribution_date");
 
+  // Fetch approved beneficiaries (these count as distributions)
+  const { data: approvedBeneficiaries, error: beneficiariesError } =
+    await supabase
+      .from("beneficiaries")
+      .select("family_members, status")
+      .eq("status", "approved");
+
   // Calculate totals
   const totalCollected =
     collections?.reduce((sum, item) => sum + (item.amount || 0), 0) || 0;
-  const totalDistributed =
+
+  // Include both direct distributions and approved beneficiaries in total distributed
+  const directDistributed =
     distributions?.reduce((sum, item) => sum + (item.amount || 0), 0) || 0;
+
+  // Get wheat price for beneficiary calculations
+  const { data: wheatProduct } = await supabase
+    .from("product_types")
+    .select("price")
+    .eq("name", "Wheat")
+    .single();
+
+  const wheatPrice = wheatProduct?.price || 100; // Default price if not found
+
+  // Calculate distributions to approved beneficiaries
+  const beneficiaryDistributed =
+    approvedBeneficiaries?.reduce(
+      (sum, beneficiary) =>
+        sum + (beneficiary.family_members || 1) * 2.5 * wheatPrice,
+      0,
+    ) || 0;
+
+  const totalDistributed = directDistributed + beneficiaryDistributed;
   const balance = totalCollected - totalDistributed;
+
+  // Process product distribution for pie chart
+  const productCounts = {};
+  const productTotals = {};
+
+  collections?.forEach((collection) => {
+    const productName = collection.product_types?.name || "Other";
+    if (!productCounts[productName]) {
+      productCounts[productName] = 0;
+      productTotals[productName] = 0;
+    }
+    productCounts[productName]++;
+    productTotals[productName] += collection.amount || 0;
+  });
+
+  // Calculate percentages for pie chart
+  const totalAmount = Object.values(productTotals).reduce(
+    (sum: any, amount: any) => sum + amount,
+    0,
+  ) as number;
+
+  // Define colors for the pie chart
+  const COLORS = [
+    "#0088FE",
+    "#00C49F",
+    "#FFBB28",
+    "#FF8042",
+    "#8884d8",
+    "#82ca9d",
+  ];
+
+  const productDistribution = Object.entries(productTotals).map(
+    ([name, amount], index) => ({
+      name,
+      value: Math.round(((amount as number) / totalAmount) * 100),
+      color: COLORS[index % COLORS.length],
+    }),
+  );
 
   // Process data for monthly trends
   const monthlyData = processMonthlyData(
@@ -41,6 +109,7 @@ export default async function AnalyticsPage() {
       totalDistributed={totalDistributed}
       balance={balance}
       monthlyData={monthlyData}
+      productDistribution={productDistribution}
     />
   );
 }
