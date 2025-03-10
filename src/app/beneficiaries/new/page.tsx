@@ -1,5 +1,6 @@
-import { redirect } from "next/navigation";
-import { createClient } from "../../../../supabase/server";
+"use client";
+
+import { useRouter } from "next/navigation";
 import Sidebar from "@/components/sidebar";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -15,16 +16,122 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import { createClient } from "../../../../supabase/client";
 
-export default async function NewBeneficiaryPage() {
-  const supabase = await createClient();
+interface Mosque {
+  id: string;
+  name: string;
+}
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+interface MosqueAdmin {
+  mosque_id: string;
+  mosques: {
+    id: string;
+    name: string;
+  };
+}
 
-  if (!user) {
-    return redirect("/sign-in");
+export default function NewBeneficiaryPage() {
+  const router = useRouter();
+  const [mosques, setMosques] = useState<Mosque[]>([]);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [selectedMosqueId, setSelectedMosqueId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        // Get user role
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: userData } = await supabase
+          .from("users")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        if (userData) {
+          setUserRole(userData.role);
+        }
+
+        // If super-admin, fetch all mosques
+        if (userData?.role === "super-admin") {
+          const { data: mosquesData } = await supabase
+            .from("mosques")
+            .select("id, name")
+            .order("name");
+
+          if (mosquesData) {
+            setMosques(mosquesData);
+          }
+        } else {
+          // For other roles, get their associated mosque
+          const { data: mosqueAdmin } = (await supabase
+            .from("mosque_admins")
+            .select("mosque_id, mosques:mosques(id, name)")
+            .eq("user_id", user.id)
+            .single()) as { data: MosqueAdmin | null };
+
+          if (mosqueAdmin) {
+            setSelectedMosqueId(mosqueAdmin.mosque_id);
+            if (mosqueAdmin.mosques) {
+              setMosques([
+                {
+                  id: mosqueAdmin.mosques.id,
+                  name: mosqueAdmin.mosques.name,
+                },
+              ]);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error loading data:", error);
+        toast.error("Failed to load mosque data");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadData();
+  }, []);
+
+  async function handleSubmit(formData: FormData) {
+    // Create a new FormData object
+    const updatedFormData = new FormData();
+
+    // Copy all existing form data
+    Array.from(formData.entries()).forEach(([key, value]) => {
+      updatedFormData.append(key, value);
+    });
+
+    if (userRole === "super-admin") {
+      const selectedMosque = formData.get("mosque_id");
+      if (!selectedMosque) {
+        toast.error("Please select a mosque");
+        return;
+      }
+    } else if (selectedMosqueId) {
+      updatedFormData.set("mosque_id", selectedMosqueId);
+    }
+
+    const result = await createBeneficiary(updatedFormData);
+
+    if (result.error) {
+      toast.error(result.error);
+    } else if (result.success) {
+      toast.success(result.success);
+      router.push("/beneficiaries");
+    }
+  }
+
+  if (isLoading) {
+    return <div>Loading...</div>;
   }
 
   return (
@@ -49,8 +156,26 @@ export default async function NewBeneficiaryPage() {
 
           {/* Form */}
           <div className="bg-white rounded-lg border p-6">
-            <form action={createBeneficiary} className="space-y-6">
+            <form action={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {userRole === "super-admin" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="mosque_id">Mosque</Label>
+                    <Select name="mosque_id" required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select mosque" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {mosques.map((mosque) => (
+                          <SelectItem key={mosque.id} value={mosque.id}>
+                            {mosque.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
                   <Input
@@ -124,16 +249,6 @@ export default async function NewBeneficiaryPage() {
                     name="woreda"
                     placeholder="Enter woreda"
                     required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="Enter email address"
                   />
                 </div>
 

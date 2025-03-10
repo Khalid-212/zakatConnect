@@ -75,7 +75,7 @@ export async function createGiver(formData: FormData) {
   } catch (error) {
     console.error("Unexpected error:", error);
     return redirect(
-      `/givers?error=An unexpected error occurred: ${error.message}`,
+      `/givers?error=An unexpected error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`,
     );
   }
 }

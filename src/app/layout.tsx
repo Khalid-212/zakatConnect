@@ -6,6 +6,7 @@ import { TempoInit } from "@/components/tempo-init";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { ToastProvider } from "@/components/ui/toast-provider";
+import { Toaster as SonnerToaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -33,6 +34,7 @@ export default function RootLayout({
           {children}
           <Toaster />
           <ToastProvider />
+          <SonnerToaster richColors position="top-right" />
         </ThemeProvider>
         <TempoInit />
       </body>

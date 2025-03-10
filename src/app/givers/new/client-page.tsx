@@ -17,13 +17,64 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { User } from "@supabase/supabase-js";
+import { json } from "stream/consumers";
+
+// Define types manually since we can't access the full Database type
+type Mosque = {
+  id: string;
+  name: string;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  website?: string | null;
+  created_at?: string;
+  updated_at?: string;
+};
+
+type ProductType = {
+  id: string;
+  name: string;
+  price: number;
+};
+
+type MosqueAdmin = {
+  mosque_id: string;
+  mosques: Mosque;
+};
 
 export default function ClientGiverPage() {
-  const [user, setUser] = useState(null);
-  const [mosques, setMosques] = useState([]);
-  const [productTypes, setProductTypes] = useState([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [mosques, setMosques] = useState<Mosque[]>([]);
+  const [productTypes, setProductTypes] = useState<ProductType[]>([]);
   const { setFamilyMembers, setProductPrice, calculatedAmount } =
     useDonationCalculator();
+  const [userMosque, setUserMosque] = useState<Mosque | null>(null);
+  const supabase = createClient();
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchUserMosque() {
+      if (!user?.id) return;
+
+      const { data: mosqueAdmin } = (await supabase
+        .from("mosque_admins")
+        .select("mosque_id, mosques:mosques(id, name)")
+        .eq("user_id", user.id)
+        .single()) as { data: MosqueAdmin | null };
+
+      if (mosqueAdmin?.mosques) {
+        setUserMosque(mosqueAdmin.mosques);
+      }
+    }
+
+    if (user?.id) {
+      fetchUserMosque();
+    }
+  }, [user]);
 
   useEffect(() => {
     async function fetchData() {
@@ -43,18 +94,36 @@ export default function ClientGiverPage() {
         .from("mosques")
         .select("id, name")
         .order("name");
-      setMosques(mosquesData || []);
+
+      // Cast the data to the expected type
+      setMosques((mosquesData as Mosque[]) || []);
 
       // Fetch product types
       const { data: productTypesData } = await supabase
         .from("product_types")
         .select("id, name, price")
         .order("name");
-      setProductTypes(productTypesData || []);
+
+      // Cast the data to the expected type
+      setProductTypes((productTypesData as ProductType[]) || []);
     }
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    async function fetchUserRole() {
+      const { data: userRoleData } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", user?.id)
+        .single();
+      if (userRoleData) {
+        setUserRole(userRoleData?.role);
+      }
+    }
+    fetchUserRole();
+  }, [user]);
 
   return (
     <div className="flex h-screen">
@@ -95,22 +164,11 @@ export default function ClientGiverPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="Enter email address"
-                  />
-                </div>
-
-                <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number</Label>
                   <Input
                     id="phone"
                     name="phone"
                     placeholder="Enter phone number"
-                    required
                   />
                 </div>
 
@@ -130,12 +188,12 @@ export default function ClientGiverPage() {
                     }
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="mosque_id">Mosque</Label>
-                  <Select name="mosque_id">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select mosque" />
+                {userRole === "super-admin" ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="mosque_id">Mosque</Label>
+                    <Select name="mosque_id">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select mosque" />
                     </SelectTrigger>
                     <SelectContent>
                       {mosques?.map((mosque) => (
@@ -144,9 +202,26 @@ export default function ClientGiverPage() {
                         </SelectItem>
                       ))}
                     </SelectContent>
-                  </Select>
-                </div>
+                    </Select>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label htmlFor="mosque_id">Mosque</Label>
+                    {/* Adding a hidden input to send the mosque ID in the form */}
+                    <input
+                      type="hidden"
+                      id="mosque_id"
+                      name="mosque_id"
+                      value={userMosque?.id || ""}
+                    />
 
+                    <Input
+                      placeholder={userMosque?.name || "Loading mosque..."}
+                      value={userMosque?.name || ""}
+                      readOnly
+                    />
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="product_type_id">Product Type</Label>
                   <Select
@@ -179,6 +254,7 @@ export default function ClientGiverPage() {
                     id="amount"
                     name="amount"
                     type="number"
+                    value={calculatedAmount}
                     placeholder="Amount will be calculated"
                     readOnly
                     className="bg-gray-50"

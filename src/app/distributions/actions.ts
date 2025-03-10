@@ -36,23 +36,35 @@ export async function createDistribution(formData: FormData) {
 export async function updateDistributionStatus(formData: FormData) {
   const supabase = await createClient();
 
-  const id = formData.get("id") as string;
+  const beneficiaryId = formData.get("id") as string;
   const status = formData.get("status") as string;
 
+  // First check if this beneficiary is already approved
+  const { data: existingBeneficiary } = await supabase
+    .from("beneficiaries")
+    .select("status")
+    .eq("id", beneficiaryId)
+    .single();
+
+  if (existingBeneficiary && existingBeneficiary.status === "approved") {
+    console.log("Beneficiary already approved, cannot update status again");
+    return { success: false, message: "Beneficiary already approved" };
+  }
+
+  // Proceed with update if not already approved
   const { error } = await supabase
-    .from("zakat_distributions")
+    .from("beneficiaries")
     .update({
       status,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", id);
+    .eq("id", beneficiaryId);
 
   if (error) {
-    console.error("Error updating distribution status:", error);
-    throw new Error("Failed to update distribution status");
+    console.error("Error updating beneficiary status:", error);
+    throw new Error("Failed to update beneficiary status");
   }
 
-  return redirect(
-    "/distributions?success=Distribution status updated successfully",
-  );
+  // Return success response
+  return { success: true, message: `Beneficiary status updated to ${status}` };
 }

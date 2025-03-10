@@ -16,6 +16,19 @@ import {
 import Link from "next/link";
 import Sidebar from "@/components/sidebar";
 
+interface Mosque {
+  id: string;
+  name: string;
+}
+
+interface MosqueAdmin {
+  mosque_id: string;
+  mosques: {
+    id: string;
+    name: string;
+  };
+}
+
 export default async function Dashboard() {
   const supabase = await createClient();
 
@@ -25,6 +38,41 @@ export default async function Dashboard() {
 
   if (!user) {
     return redirect("/sign-in");
+  }
+
+  // Get user role and mosque information
+  const { data: userData } = await supabase
+    .from("users")
+    .select("role, full_name")
+    .eq("id", user.id)
+    .single();
+
+  let mosqueName = "N/A";
+  let mosqueId = null;
+
+  if (userData?.role === "super-admin") {
+    // For super-admin, get the first mosque as default
+    const { data: mosquesData } = (await supabase
+      .from("mosques")
+      .select("id, name")
+      .limit(1)) as { data: Mosque[] | null };
+
+    if (mosquesData?.[0]) {
+      mosqueId = mosquesData[0].id;
+      mosqueName = mosquesData[0].name;
+    }
+  } else {
+    // For other roles, get their associated mosque
+    const { data: mosqueAdmin } = (await supabase
+      .from("mosque_admins")
+      .select("mosque_id, mosques:mosques(id, name)")
+      .eq("user_id", user.id)
+      .single()) as { data: MosqueAdmin | null };
+
+    if (mosqueAdmin?.mosques) {
+      mosqueId = mosqueAdmin.mosque_id;
+      mosqueName = mosqueAdmin.mosques.name;
+    }
   }
 
   // Fetch data from database
@@ -73,7 +121,7 @@ export default async function Dashboard() {
         type: "Zakat payment received",
         amount: item.amount,
         currency: "ETB",
-        from: item.givers?.name || "Anonymous",
+        from: (item?.givers && item.givers[0]?.name) || "Anonymous",
         daysAgo: diffDays,
       };
     }) || [];
@@ -86,10 +134,15 @@ export default async function Dashboard() {
           {/* Header Section */}
           <header className="flex flex-col gap-1 mb-8">
             <h1 className="text-3xl font-bold">Dashboard</h1>
-            <p className="text-muted-foreground">Welcome back, super-admin</p>
+            <p className="text-muted-foreground">
+              Welcome back, {userData?.full_name || user.email}
+            </p>
             <div className="flex justify-between items-center mt-2">
               <p className="text-sm text-muted-foreground">
-                Role: Super Admin | Mosque ID: {mosquesData?.[0]?.id || "N/A"}
+                Role:{" "}
+                {userData?.role?.charAt(0).toUpperCase() +
+                  userData?.role?.slice(1)}{" "}
+                | Mosque: {mosqueName}
               </p>
               <Button
                 variant="outline"
@@ -179,9 +232,9 @@ export default async function Dashboard() {
             <div className="lg:col-span-2 bg-white rounded-lg border p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold">Recent Activity</h2>
-                <Button variant="ghost" size="sm" className="text-primary">
+                {/* <Button variant="ghost" size="sm" className="text-primary">
                   View all
-                </Button>
+                </Button> */}
               </div>
               <div className="space-y-6">
                 {formattedActivity.length > 0 ? (

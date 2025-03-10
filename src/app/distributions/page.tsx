@@ -38,21 +38,6 @@ export default async function DistributionsPage() {
     .select("*")
     .order("created_at", { ascending: false });
 
-  // Get distribution status for each beneficiary
-  const beneficiaryIds = beneficiaries?.map((ben) => ben.id) || [];
-  const { data: beneficiaryDistributions } = await supabase
-    .from("zakat_distributions")
-    .select("beneficiary_id, status")
-    .in("beneficiary_id", beneficiaryIds);
-
-  // Create a map of beneficiary ID to status
-  const beneficiaryStatus = {};
-  beneficiaryDistributions?.forEach((dist) => {
-    if (dist.beneficiary_id) {
-      beneficiaryStatus[dist.beneficiary_id] = dist.status;
-    }
-  });
-
   return (
     <div className="flex h-screen">
       <Sidebar />
@@ -131,7 +116,7 @@ export default async function DistributionsPage() {
               {/* Fetch beneficiaries and show them here */}
               {beneficiaries && beneficiaries.length > 0 ? (
                 beneficiaries.map((beneficiary) => {
-                  const status = beneficiaryStatus[beneficiary.id] || "pending";
+                  const status = beneficiary.status || "pending";
                   const statusColor =
                     status === "approved"
                       ? "bg-green-100 text-green-600"
@@ -225,7 +210,7 @@ export default async function DistributionsPage() {
                   </div>
                   <div className="text-gray-600">
                     {new Date(
-                      distribution.distribution_date,
+                      distribution.distribution_date
                     ).toLocaleDateString()}
                   </div>
                   <div className="text-gray-600">

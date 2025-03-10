@@ -9,14 +9,6 @@ export function useAuthRole() {
   const supabase = createClient();
 
   useEffect(() => {
-    // Check if we have the role in localStorage to avoid unnecessary DB calls
-    const cachedRole = localStorage.getItem("userRole");
-    if (cachedRole) {
-      setUserRole(cachedRole);
-      setIsLoading(false);
-      return;
-    }
-
     const fetchUserRole = async () => {
       try {
         const {
@@ -31,8 +23,6 @@ export function useAuthRole() {
             .single();
 
           if (data?.role) {
-            // Cache the role in localStorage
-            localStorage.setItem("userRole", data.role);
             setUserRole(data.role);
           }
         }
@@ -50,9 +40,10 @@ export function useAuthRole() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_OUT") {
-        // Clear the cached role when user signs out
-        localStorage.removeItem("userRole");
         setUserRole(null);
+      } else {
+        // Refetch role on auth state change
+        fetchUserRole();
       }
     });
 

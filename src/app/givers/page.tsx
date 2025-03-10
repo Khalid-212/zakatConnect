@@ -94,11 +94,13 @@ export default async function GiversPage() {
                     <span className="font-medium">{giver.name}</span>
                   </div>
                   <div className="text-gray-600">
-                    {giver.email || giver.phone || "N/A"}
+                    {giver.email?.slice(0, 10) + "..." ||
+                      giver.phone?.slice(0, 10) + "..." ||
+                      "N/A"}
                   </div>
                   <div className="text-gray-600">{giver.address || "N/A"}</div>
                   <div className="flex flex-col gap-1">
-                    <span className="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full">
+                    <span className="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full w-28 text-center">
                       {totalDonations[giver.id]?.toFixed(2) || "0"} ETB
                     </span>
                     {giver.code && (

@@ -17,34 +17,16 @@ export default async function BeneficiariesPage() {
     return redirect("/sign-in");
   }
 
-  // Fetch beneficiaries from database
+  // Fetch beneficiaries from database with their status
   const { data: beneficiaries, error } = await supabase
     .from("beneficiaries")
     .select("*")
     .order("created_at", { ascending: false });
 
-  // Fetch distributions for each beneficiary to determine status
-  const beneficiaryIds = beneficiaries?.map((ben) => ben.id) || [];
-  const { data: distributions } = await supabase
-    .from("zakat_distributions")
-    .select("beneficiary_id, status")
-    .in("beneficiary_id", beneficiaryIds);
-
-  // Determine status for each beneficiary
-  const beneficiaryStatus = {};
-  distributions?.forEach((dist) => {
-    if (dist.beneficiary_id) {
-      // If any distribution is approved, mark as approved
-      if (dist.status === "approved") {
-        beneficiaryStatus[dist.beneficiary_id] = "approved";
-      }
-      // If no approved status yet but has pending, mark as pending
-      else if (
-        dist.status === "pending" &&
-        beneficiaryStatus[dist.beneficiary_id] !== "approved"
-      ) {
-        beneficiaryStatus[dist.beneficiary_id] = "pending";
-      }
+  // If a beneficiary doesn't have a status, we'll set a default
+  beneficiaries?.forEach((beneficiary) => {
+    if (!beneficiary.status) {
+      beneficiary.status = "active";
     }
   });
 
@@ -95,7 +77,7 @@ export default async function BeneficiariesPage() {
 
             {beneficiaries && beneficiaries.length > 0 ? (
               beneficiaries.map((beneficiary) => {
-                const status = beneficiaryStatus[beneficiary.id] || "active";
+                const status = beneficiary.status || "active";
                 const statusColor =
                   status === "approved"
                     ? "bg-green-100 text-green-600"
