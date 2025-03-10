@@ -63,12 +63,38 @@ export default async function NewBeneficiaryPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="region">Region</Label>
-                  <Input
-                    id="region"
-                    name="region"
-                    placeholder="Enter region"
-                    required
-                  />
+                  <Select name="region" required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select region" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Addis Ababa">Addis Ababa</SelectItem>
+                      <SelectItem value="Afar">Afar</SelectItem>
+                      <SelectItem value="Amhara">Amhara</SelectItem>
+                      <SelectItem value="Benishangul-Gumuz">
+                        Benishangul-Gumuz
+                      </SelectItem>
+                      <SelectItem value="Central Ethiopia">
+                        Central Ethiopia
+                      </SelectItem>
+                      <SelectItem value="Dire Dawa">Dire Dawa</SelectItem>
+                      <SelectItem value="Gambella">Gambella</SelectItem>
+                      <SelectItem value="Harari">Harari</SelectItem>
+                      <SelectItem value="Oromia">Oromia</SelectItem>
+                      <SelectItem value="Sidama">Sidama</SelectItem>
+                      <SelectItem value="Somali">Somali</SelectItem>
+                      <SelectItem value="South Ethiopia">
+                        South Ethiopia
+                      </SelectItem>
+                      <SelectItem value="Southern Nations, Nationalities, and Peoples'">
+                        Southern Nations, Nationalities, and Peoples'
+                      </SelectItem>
+                      <SelectItem value="South West Ethiopia Peoples'">
+                        South West Ethiopia Peoples'
+                      </SelectItem>
+                      <SelectItem value="Tigray">Tigray</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
