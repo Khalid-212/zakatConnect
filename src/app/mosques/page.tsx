@@ -4,6 +4,7 @@ import Sidebar from "@/components/sidebar";
 import { Button } from "@/components/ui/button";
 import { Building2 as Mosque, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import Link from "next/link";
 
 export default async function MosquesPage() {
   const supabase = await createClient();
@@ -33,10 +34,12 @@ export default async function MosquesPage() {
               <h1 className="text-3xl font-bold">Mosques</h1>
               <p className="text-muted-foreground">Manage registered mosques</p>
             </div>
-            <Button className="flex items-center gap-2">
-              <Plus size={16} />
-              Add Mosque
-            </Button>
+            <Link href="/mosques/new">
+              <Button className="flex items-center gap-2">
+                <Plus size={16} />
+                Add Mosque
+              </Button>
+            </Link>
           </div>
 
           {/* Search and Filter */}

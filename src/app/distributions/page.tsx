@@ -67,14 +67,12 @@ export default async function DistributionsPage() {
               </p>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" className="flex items-center gap-2">
-                <Download size={16} />
-                Export
-              </Button>
-              <Button className="flex items-center gap-2">
-                <Plus size={16} />
-                Add Distribution
-              </Button>
+              <Link href="/distributions/new">
+                <Button className="flex items-center gap-2">
+                  <Plus size={16} />
+                  Add Distribution
+                </Button>
+              </Link>
             </div>
           </div>
 

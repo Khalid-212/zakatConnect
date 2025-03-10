@@ -13,6 +13,7 @@ export type Database = {
         Row: {
           address: string | null
           category: string
+          city: string | null
           code: string | null
           created_at: string | null
           email: string | null
@@ -21,11 +22,16 @@ export type Database = {
           name: string
           notes: string | null
           phone: string | null
+          region: string | null
+          remark: string | null
+          sub_city: string | null
           updated_at: string | null
+          woreda: string | null
         }
         Insert: {
           address?: string | null
           category: string
+          city?: string | null
           code?: string | null
           created_at?: string | null
           email?: string | null
@@ -34,11 +40,16 @@ export type Database = {
           name: string
           notes?: string | null
           phone?: string | null
+          region?: string | null
+          remark?: string | null
+          sub_city?: string | null
           updated_at?: string | null
+          woreda?: string | null
         }
         Update: {
           address?: string | null
           category?: string
+          city?: string | null
           code?: string | null
           created_at?: string | null
           email?: string | null
@@ -47,7 +58,11 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string | null
+          region?: string | null
+          remark?: string | null
+          sub_city?: string | null
           updated_at?: string | null
+          woreda?: string | null
         }
         Relationships: []
       }
