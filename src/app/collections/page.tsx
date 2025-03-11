@@ -2,6 +2,29 @@ import { redirect } from "next/navigation";
 import { createClient } from "../../../supabase/server";
 import CollectionsClient from "./collections-client";
 
+interface Collection {
+  id: string;
+  amount: number;
+  type: string;
+  collection_date: string;
+  mosque_id: string;
+  product_type_id: string | null;
+  product_types: {
+    id: string;
+    name: string;
+    price: number;
+  } | null;
+  mosques: {
+    id: string;
+    name: string;
+  } | null;
+  givers: {
+    id: string;
+    name: string;
+    phone: string;
+  } | null;
+}
+
 export default async function CollectionsPage() {
   const supabase = await createClient();
 
@@ -55,16 +78,16 @@ export default async function CollectionsPage() {
       collection_date,
       mosque_id,
       product_type_id,
-      product_types (
+      product_types:product_types (
         id,
         name,
         price
       ),
-      mosques (
+      mosques:mosques (
         id,
         name
       ),
-      givers (
+      givers:givers (
         id,
         name,
         phone
@@ -78,11 +101,20 @@ export default async function CollectionsPage() {
     collectionsQuery.eq("mosque_id", defaultMosqueId);
   }
 
-  const { data: collections, error: collectionsError } = await collectionsQuery;
+  const { data: rawCollections, error: collectionsError } =
+    await collectionsQuery;
 
   if (collectionsError) {
     console.error("Error fetching collections:", collectionsError);
   }
+
+  // Transform the collections data to match the expected type
+  const collections = rawCollections?.map((collection: any) => ({
+    ...collection,
+    product_types: collection.product_types?.[0] || null,
+    mosques: collection.mosques?.[0] || null,
+    givers: collection.givers?.[0] || null,
+  })) as Collection[] | null;
 
   // Fetch product types for the form
   const { data: productTypes } = await supabase
