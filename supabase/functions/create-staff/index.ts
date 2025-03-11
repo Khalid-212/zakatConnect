@@ -1,11 +1,10 @@
 /// <reference path="../types.d.ts" />
 
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from '@supabase/supabase-js';
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
 interface RequestBody {
@@ -18,41 +17,34 @@ interface RequestBody {
 
 Deno.serve(async (req: Request) => {
   // Handle CORS preflight request
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") as string;
-    const supabaseServiceKey = Deno.env.get(
-      "SUPABASE_SERVICE_ROLE_KEY",
-    ) as string;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') as string;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') as string;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { email, password, fullName, role, mosqueId } =
-      (await req.json()) as RequestBody;
+    const { email, password, fullName, role, mosqueId } = (await req.json()) as RequestBody;
 
     if (!email || !password || !fullName || !role || !mosqueId) {
-      return new Response(
-        JSON.stringify({ error: "All fields are required" }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400,
-        },
-      );
+      return new Response(JSON.stringify({ error: 'All fields are required' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      });
     }
 
     // Create user in auth.users
-    const { data: authUser, error: authError } =
-      await supabase.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-        user_metadata: {
-          full_name: fullName,
-          role: role,
-        },
-      });
+    const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: {
+        full_name: fullName,
+        role: role,
+      },
+    });
 
     if (authError) {
       return new Response(
@@ -60,15 +52,15 @@ Deno.serve(async (req: Request) => {
           error: `Error creating auth user: ${authError.message}`,
         }),
         {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400,
-        },
+        }
       );
     }
 
     // Create user in public.users
     const { data: publicUser, error: publicUserError } = await supabase
-      .from("users")
+      .from('users')
       .insert({
         id: authUser.user.id,
         email: email,
@@ -89,15 +81,15 @@ Deno.serve(async (req: Request) => {
           error: `Error creating public user: ${publicUserError.message}`,
         }),
         {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400,
-        },
+        }
       );
     }
 
     // Create mosque_admin entry
     const { data: mosqueAdmin, error: mosqueAdminError } = await supabase
-      .from("mosque_admins")
+      .from('mosque_admins')
       .insert({
         user_id: authUser.user.id,
         mosque_id: mosqueId,
@@ -114,30 +106,28 @@ Deno.serve(async (req: Request) => {
           error: `Error creating mosque admin: ${mosqueAdminError.message}`,
         }),
         {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400,
-        },
+        }
       );
     }
 
     return new Response(
       JSON.stringify({
-        message: "Staff member created successfully",
+        message: 'Staff member created successfully',
         user: authUser.user,
         mosque_admin: mosqueAdmin,
       }),
       {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
-      },
+      }
     );
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: `Server error: ${error.message}` }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      },
-    );
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return new Response(JSON.stringify({ error: `Server error: ${errorMessage}` }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500,
+    });
   }
 });
