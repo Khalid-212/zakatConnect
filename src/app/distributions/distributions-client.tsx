@@ -1,11 +1,4 @@
-// Add this at the top of the file
-declare global {
-  interface Window {
-    refreshDistributionsData?: () => Promise<void>;
-  }
-}
-
-("use client");
+"use client";
 
 import Sidebar from "@/components/sidebar";
 import { Button } from "@/components/ui/button";
@@ -16,6 +9,13 @@ import Link from "next/link";
 import { updateDistributionStatus } from "./actions";
 import { ApprovalButton } from "./approval-button";
 import { createClient } from "../../../supabase/client";
+
+// Add this at the top of the file
+declare global {
+  interface Window {
+    refreshDistributionsData?: () => Promise<void>;
+  }
+}
 
 interface DistributionsClientProps {
   initialDistributions: any[];
