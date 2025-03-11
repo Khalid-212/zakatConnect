@@ -1,0 +1,42 @@
+/* Public Analytics Styles */
+.analytics-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.analytics-main {
+  flex: 1;
+  background-color: #f9fafb;
+  padding: 3rem 0;
+}
+
+.analytics-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.analytics-card {
+  background-color: white;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.analytics-chart-container {
+  height: 20rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  background-color: #f9fafb;
+  padding: 1rem;
+}
+
+.analytics-cta {
+  background-color: var(--primary);
+  color: white;
+  border-radius: 0.5rem;
+  padding: 2rem;
+  text-align: center;
+  margin-top: 2rem;
+}

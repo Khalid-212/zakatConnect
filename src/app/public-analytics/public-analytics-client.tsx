@@ -39,7 +39,58 @@ export default function PublicAnalyticsClient(props: {
   giversCount: number;
   mosques: { id: string; name: string }[];
 }) {
-  const [selectedMosqueId, setSelectedMosqueId] = useState<string | null>(null);
+  const [selectedMosqueId, setSelectedMosqueId] = useState<string | null>(
+    "all",
+  );
+
+  // Filter data based on selected mosque
+  // Filter monthly data based on selected mosque
+  const filteredMonthlyData = props.monthlyData;
+
+  // If a specific mosque is selected, we need to modify the data
+  if (selectedMosqueId && selectedMosqueId !== "all") {
+    // Create a deep copy of the data to avoid modifying the original
+    const filteredData = JSON.parse(JSON.stringify(props.monthlyData));
+
+    // For each day, replace the collections and distributions values with mosque-specific values
+    filteredData.forEach((day) => {
+      // Replace collections with mosque-specific collections
+      if (day[`mosque_${selectedMosqueId}`]) {
+        day.collections = day[`mosque_${selectedMosqueId}`];
+      } else {
+        day.collections = 0;
+      }
+
+      // Replace distributions with mosque-specific distributions
+      if (day[`mosque_dist_${selectedMosqueId}`]) {
+        day.distributions = day[`mosque_dist_${selectedMosqueId}`];
+      } else {
+        day.distributions = 0;
+      }
+    });
+
+    return filteredData;
+  }
+
+  return props.monthlyData;
+
+  const filteredMosqueDistribution =
+    selectedMosqueId && selectedMosqueId !== "all"
+      ? props.mosqueDistribution.filter((item) => item.id === selectedMosqueId)
+      : props.mosqueDistribution;
+
+  // Calculate filtered totals
+  const filteredTotalCollected =
+    selectedMosqueId && selectedMosqueId !== "all"
+      ? props.totalCollectedByMosque?.[selectedMosqueId] || 0
+      : props.totalCollected;
+
+  const filteredTotalDistributed =
+    selectedMosqueId && selectedMosqueId !== "all"
+      ? props.totalDistributedByMosque?.[selectedMosqueId] || 0
+      : props.totalDistributed;
+
+  const filteredBalance = filteredTotalCollected - filteredTotalDistributed;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -100,7 +151,7 @@ export default function PublicAnalyticsClient(props: {
                 </div>
               </div>
               <div className="text-3xl font-bold">
-                {props.totalCollected.toFixed(2)} ETB
+                {filteredTotalCollected.toFixed(2)} ETB
               </div>
               <span className="text-sm text-muted-foreground mt-1">
                 From all sources
@@ -116,7 +167,7 @@ export default function PublicAnalyticsClient(props: {
                 </div>
               </div>
               <div className="text-3xl font-bold">
-                {props.totalDistributed.toFixed(2)} ETB
+                {filteredTotalDistributed.toFixed(2)} ETB
               </div>
               <span className="text-sm text-muted-foreground mt-1">
                 To all beneficiaries
@@ -132,12 +183,12 @@ export default function PublicAnalyticsClient(props: {
                 </div>
               </div>
               <div className="text-3xl font-bold">
-                {props.balance.toFixed(2)} ETB
+                {filteredBalance.toFixed(2)} ETB
               </div>
               <span
-                className={`text-sm ${props.balance < 0 ? "text-red-500 font-medium" : "text-muted-foreground"} mt-1`}
+                className={`text-sm ${filteredBalance < 0 ? "text-red-500 font-medium" : "text-muted-foreground"} mt-1`}
               >
-                {props.balance < 0
+                {filteredBalance < 0
                   ? "Deficit - More distributed than collected"
                   : "Available for distribution"}
               </span>
@@ -162,7 +213,7 @@ export default function PublicAnalyticsClient(props: {
             <div className="h-80 border rounded-lg bg-gray-50 p-4">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
-                  data={props.monthlyData}
+                  data={filteredMonthlyData}
                   margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
@@ -231,7 +282,7 @@ export default function PublicAnalyticsClient(props: {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={props.mosqueDistribution}
+                      data={filteredMosqueDistribution}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
@@ -242,7 +293,7 @@ export default function PublicAnalyticsClient(props: {
                         `${name}: ${(percent * 100).toFixed(0)}%`
                       }
                     >
-                      {props.mosqueDistribution.map((entry, index) => (
+                      {filteredMosqueDistribution.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -251,7 +302,7 @@ export default function PublicAnalyticsClient(props: {
                 </ResponsiveContainer>
               </div>
               <div className="space-y-4">
-                {props.mosqueDistribution.map((mosque, index) => (
+                {filteredMosqueDistribution.map((mosque, index) => (
                   <div
                     key={index}
                     className="flex justify-between items-center p-3 border rounded-lg"
