@@ -1,33 +1,41 @@
-"use client";
+'use client';
 
-import { useToast } from "@/components/ui/use-toast";
-import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useToast } from '@/components/ui/use-toast';
+import { useSearchParams } from 'next/navigation';
+import { Suspense, useEffect } from 'react';
 
-export function ToastProvider() {
+function ToastProviderInner() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const success = searchParams.get("success");
-    const error = searchParams.get("error");
+    const success = searchParams.get('success');
+    const error = searchParams.get('error');
 
     if (success) {
       toast({
-        title: "Success",
+        title: 'Success',
         description: success,
-        variant: "default",
+        variant: 'default',
       });
     }
 
     if (error) {
       toast({
-        title: "Error",
+        title: 'Error',
         description: error,
-        variant: "destructive",
+        variant: 'destructive',
       });
     }
   }, [searchParams, toast]);
 
   return null;
+}
+
+export function ToastProvider() {
+  return (
+    <Suspense fallback={null}>
+      <ToastProviderInner />
+    </Suspense>
+  );
 }

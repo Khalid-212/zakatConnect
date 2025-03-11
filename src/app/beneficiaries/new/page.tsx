@@ -33,6 +33,8 @@ interface MosqueAdmin {
   };
 }
 
+export const dynamic = 'force-dynamic';
+
 export default function NewBeneficiaryPage() {
   const router = useRouter();
   const [mosques, setMosques] = useState<Mosque[]>([]);
