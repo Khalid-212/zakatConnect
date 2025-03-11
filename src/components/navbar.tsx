@@ -6,18 +6,19 @@ import { Button } from "./ui/button";
 import { Building2 as Mosque, UserCircle } from "lucide-react";
 import UserProfile from "./user-profile";
 import React from "react";
+import { User } from "@supabase/supabase-js";
 
 export default function Navbar() {
-  const [user, setUser] = React.useState(null);
+ const [user, setUser] = React.useState<User | null>(null);
 
-  React.useEffect(() => {
-    async function getUser() {
-      const supabase = createClient();
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-    }
-    getUser();
-  }, []);
+ React.useEffect(() => {
+   async function getUser() {
+     const supabase = createClient();
+     const { data } = await supabase.auth.getUser();
+     setUser(data.user);
+   }
+   getUser();
+ }, []);
 
   return (
     <nav className="w-full border-b border-gray-200 bg-white py-3 sticky top-0 z-50">
