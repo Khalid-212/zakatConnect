@@ -9,6 +9,13 @@ import Link from "next/link";
 import { updateDistributionStatus } from "./actions";
 import { ApprovalButton } from "./approval-button";
 import { createClient } from "../../../supabase/client";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Add this at the top of the file
 declare global {
@@ -17,20 +24,64 @@ declare global {
   }
 }
 
+interface Distribution {
+  id: string;
+  amount: number;
+  distribution_date: string;
+  mosque_id: string;
+  beneficiary_id: string;
+  mosques: {
+    id: string;
+    name: string;
+  };
+  beneficiaries: {
+    id: string;
+    name: string;
+    code: string;
+  };
+}
+
+interface Beneficiary {
+  id: string;
+  name: string;
+  code: string;
+  family_members?: number;
+  city?: string;
+  region?: string;
+  status?: string;
+  mosque_id: string;
+}
+
+interface Mosque {
+  id: string;
+  name: string;
+}
+
 interface DistributionsClientProps {
-  initialDistributions: any[];
-  initialBeneficiaries: any[];
+  distributions: Distribution[];
+  beneficiaries: Beneficiary[];
+  mosques: Mosque[];
+  userRole: string;
+  defaultMosqueId: string | null;
 }
 
 export default function DistributionsClient({
-  initialDistributions,
-  initialBeneficiaries,
+  distributions: initialDistributions,
+  beneficiaries: initialBeneficiaries,
+  mosques,
+  userRole,
+  defaultMosqueId,
 }: DistributionsClientProps) {
   const [searchCode, setSearchCode] = useState("");
-  const [distributions, setDistributions] = useState(initialDistributions);
-  const [beneficiaries, setBeneficiaries] = useState(initialBeneficiaries);
+  const [distributions, setDistributions] =
+    useState<Distribution[]>(initialDistributions);
+  const [beneficiaries, setBeneficiaries] =
+    useState<Beneficiary[]>(initialBeneficiaries);
   const [filteredBeneficiaries, setFilteredBeneficiaries] =
-    useState(initialBeneficiaries);
+    useState<Beneficiary[]>(initialBeneficiaries);
+  const [selectedMosqueId, setSelectedMosqueId] = useState<string | null>(
+    defaultMosqueId
+  );
 
   // Handle search input change
   const handleSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,13 +90,18 @@ export default function DistributionsClient({
 
     if (code.length > 2) {
       const supabase = createClient();
-      const { data } = await supabase
+      const query = supabase
         .from("beneficiaries")
         .select("*")
         .ilike("code", `%${code}%`)
-        .order("created_at", { ascending: false });
+        .order("name");
 
-      setFilteredBeneficiaries(data || []);
+      if (selectedMosqueId) {
+        query.eq("mosque_id", selectedMosqueId);
+      }
+
+      const { data } = await query;
+      setFilteredBeneficiaries((data || []) as Beneficiary[]);
     } else {
       setFilteredBeneficiaries(beneficiaries);
     }
@@ -55,23 +111,57 @@ export default function DistributionsClient({
   const refreshData = async () => {
     const supabase = createClient();
 
-    const { data: newDistributions } = await supabase
+    const distributionsQuery = supabase
       .from("zakat_distributions")
-      .select("*, beneficiaries(name), mosques(name)")
+      .select(
+        `
+        id,
+        amount,
+        distribution_date,
+        mosque_id,
+        beneficiary_id,
+        mosques:mosques (
+          id,
+          name
+        ),
+        beneficiaries:beneficiaries (
+          id,
+          name,
+          code
+        )
+      `
+      )
       .order("distribution_date", { ascending: false });
 
-    if (newDistributions) {
-      setDistributions(newDistributions);
+    if (selectedMosqueId) {
+      distributionsQuery.eq("mosque_id", selectedMosqueId);
     }
 
-    const { data: newBeneficiaries } = await supabase
+    const { data: newDistributions } = await distributionsQuery;
+
+    if (newDistributions) {
+      const typedDistributions = newDistributions.map((d: any) => ({
+        ...d,
+        mosques: d.mosques[0],
+        beneficiaries: d.beneficiaries[0],
+      }));
+      setDistributions(typedDistributions as Distribution[]);
+    }
+
+    const beneficiariesQuery = supabase
       .from("beneficiaries")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("name");
+
+    if (selectedMosqueId) {
+      beneficiariesQuery.eq("mosque_id", selectedMosqueId);
+    }
+
+    const { data: newBeneficiaries } = await beneficiariesQuery;
 
     if (newBeneficiaries) {
-      setBeneficiaries(newBeneficiaries);
-      setFilteredBeneficiaries(newBeneficiaries);
+      setBeneficiaries(newBeneficiaries as Beneficiary[]);
+      setFilteredBeneficiaries(newBeneficiaries as Beneficiary[]);
     }
   };
 
@@ -80,11 +170,11 @@ export default function DistributionsClient({
     setFilteredBeneficiaries(beneficiaries);
 
     // Add a global refresh function that can be called from other components
-    (window as any).refreshDistributionsData = refreshData;
+    window.refreshDistributionsData = refreshData;
 
     return () => {
       // Clean up when component unmounts
-      delete (window as any).refreshDistributionsData;
+      delete window.refreshDistributionsData;
     };
   }, [beneficiaries]);
 
@@ -124,6 +214,27 @@ export default function DistributionsClient({
                   className="pl-10 w-full"
                 />
               </div>
+              {userRole === "super-admin" && (
+                <Select
+                  value={selectedMosqueId || ""}
+                  onValueChange={(value) => {
+                    setSelectedMosqueId(value === "" ? null : value);
+                    refreshData();
+                  }}
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select mosque" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Mosques</SelectItem>
+                    {mosques.map((mosque) => (
+                      <SelectItem key={mosque.id} value={mosque.id}>
+                        {mosque.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
               <Button variant="outline" className="flex items-center gap-2">
                 <Filter size={16} />
                 Filter
@@ -165,7 +276,6 @@ export default function DistributionsClient({
                 <div>Actions</div>
               </div>
 
-              {/* Fetch beneficiaries and show them here */}
               {filteredBeneficiaries && filteredBeneficiaries.length > 0 ? (
                 filteredBeneficiaries.map((beneficiary) => {
                   const status = beneficiary.status || "pending";
@@ -256,9 +366,7 @@ export default function DistributionsClient({
                     <div className="bg-blue-100 p-2 rounded-md">
                       <Package size={18} className="text-primary" />
                     </div>
-                    <span className="font-medium">
-                      {distribution.id.substring(0, 8)}
-                    </span>
+                    <span className="font-medium">#{distribution.id}</span>
                   </div>
                   <div className="text-gray-600">
                     {new Date(
@@ -266,18 +374,17 @@ export default function DistributionsClient({
                     ).toLocaleDateString()}
                   </div>
                   <div className="text-gray-600">
-                    {distribution.mosques?.name || "N/A"}
+                    {distribution.mosques.name}
                   </div>
                   <div className="text-gray-600">
-                    {distribution.beneficiaries?.name || "Unknown"}
+                    {distribution.beneficiaries.name} (
+                    {distribution.beneficiaries.code})
                   </div>
-                  <div>
-                    <span className="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full">
-                      {distribution.amount} ETB
-                    </span>
+                  <div className="text-gray-600">
+                    ${distribution.amount.toFixed(2)}
                   </div>
-                  <div>
-                    <Button variant="ghost" size="sm" className="text-primary">
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm">
                       View Details
                     </Button>
                   </div>
@@ -285,7 +392,7 @@ export default function DistributionsClient({
               ))
             ) : (
               <div className="p-8 text-center text-gray-500">
-                No distributions found. Add a distribution to get started.
+                No distributions found. Add distributions to get started.
               </div>
             )}
           </div>
