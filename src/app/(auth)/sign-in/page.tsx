@@ -27,7 +27,7 @@ export default async function SignInPage({ searchParams }: LoginProps) {
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-8">
         <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-sm">
           <form className="flex flex-col space-y-6">
-            <div className="space-y-2 text-center">
+            {/* <div className="space-y-2 text-center">
               <h1 className="text-3xl font-semibold tracking-tight">Sign in</h1>
               <p className="text-sm text-muted-foreground">
                 Don&apos;t have an account?{' '}
@@ -38,7 +38,7 @@ export default async function SignInPage({ searchParams }: LoginProps) {
                   Sign up
                 </Link>
               </p>
-            </div>
+            </div> */}
 
             <div className="space-y-4">
               <div className="space-y-2">

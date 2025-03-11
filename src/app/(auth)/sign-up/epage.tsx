@@ -1,17 +1,15 @@
-import { FormMessage, Message } from "@/components/form-message";
-import { SubmitButton } from "@/components/submit-button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import Link from "next/link";
-import { SmtpMessage } from "../smtp-message";
-import { signUpAction } from "@/app/actions";
-import Navbar from "@/components/navbar";
+import { FormMessage, Message } from '@/components/form-message';
+import { SubmitButton } from '@/components/submit-button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import Link from 'next/link';
+import { SmtpMessage } from '../smtp-message';
+import { signUpAction } from '@/app/actions';
+import Navbar from '@/components/navbar';
 
-export default async function Signup(props: {
-  searchParams: Promise<Message>;
-}) {
+export default async function Signup(props: { searchParams: Promise<Message> }) {
   const searchParams = await props.searchParams;
-  if ("message" in searchParams) {
+  if ('message' in searchParams) {
     return (
       <div className="flex h-screen w-full flex-1 items-center justify-center p-4 sm:max-w-md">
         <FormMessage message={searchParams} />
@@ -28,7 +26,7 @@ export default async function Signup(props: {
             <div className="space-y-2 text-center">
               <h1 className="text-3xl font-semibold tracking-tight">Sign up</h1>
               <p className="text-sm text-muted-foreground">
-                Already have an account?{" "}
+                Already have an account?{' '}
                 <Link
                   className="text-primary font-medium hover:underline transition-all"
                   href="/sign-in"
@@ -83,11 +81,7 @@ export default async function Signup(props: {
               </div>
             </div>
 
-            <SubmitButton
-              formAction={signUpAction}
-              pendingText="Signing up..."
-              className="w-full"
-            >
+            <SubmitButton formAction={signUpAction} pendingText="Signing up..." className="w-full">
               Sign up
             </SubmitButton>
 

@@ -1,14 +1,12 @@
-import Footer from "@/components/footer";
-import Navbar from "@/components/navbar";
-import { ArrowUpRight, CheckCircle2, Users, BarChart4 } from "lucide-react";
-import {
-  Building2 as Mosque,
-  Coins,
-  HeartHandshake as HandHeart,
-} from "lucide-react";
-import { createClient } from "../../supabase/server";
-import Link from "next/link";
-import Image from "next/image";
+import Footer from '@/components/footer';
+import Navbar from '@/components/navbar';
+import { ArrowUpRight, CheckCircle2, Users, BarChart4 } from 'lucide-react';
+import { Building2 as Mosque, Coins, HeartHandshake as HandHeart } from 'lucide-react';
+import { createClient } from '../../supabase/server';
+import Link from 'next/link';
+import Image from 'next/image';
+import { MosqueRegistrationDialog } from '@/components/mosque-registration-dialog';
+import { Button } from '@/components/ui/button';
 
 export default async function Home() {
   const supabase = await createClient();
@@ -27,33 +25,34 @@ export default async function Home() {
         <div className="container mx-auto px-4 relative">
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 mb-8 tracking-tight">
-              ZakatConnect:{" "}
+              ZakatConnect:{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-500">
                 Mosque Zakat Management
               </span>
             </h1>
 
             <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
-              A comprehensive platform for mosques to register, track, and
-              manage zakat collections and distributions with role-based access
-              control.
+              A comprehensive platform for mosques to register, track, and manage zakat collections
+              and distributions with role-based access control.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link
-                href={user ? "/dashboard" : "/sign-in"}
+                href={user ? '/dashboard' : '/sign-in'}
                 className="inline-flex items-center px-8 py-4 text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors text-lg font-medium"
               >
-                {user ? "Go to Dashboard" : "Sign In"}
+                {user ? 'Go to Dashboard' : 'Sign In'}
                 <ArrowUpRight className="ml-2 w-5 h-5" />
               </Link>
 
-              <Link
-                href="/sign-up"
-                className="inline-flex items-center px-8 py-4 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-lg font-medium"
-              >
-                Register Your Mosque
-              </Link>
+              <MosqueRegistrationDialog>
+                <Button
+                  variant="outline"
+                  className="inline-flex items-center px-8 py-4 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-lg font-medium h-auto"
+                >
+                  Register Your Mosque
+                </Button>
+              </MosqueRegistrationDialog>
             </div>
 
             <div className="mt-16 flex flex-col sm:flex-row items-center justify-center gap-8 text-sm text-gray-600">
@@ -78,12 +77,10 @@ export default async function Home() {
       <section className="py-24 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">
-              Comprehensive Zakat Management
-            </h2>
+            <h2 className="text-3xl font-bold mb-4">Comprehensive Zakat Management</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Our platform provides everything mosques need to efficiently
-              manage zakat collections and distributions.
+              Our platform provides everything mosques need to efficiently manage zakat collections
+              and distributions.
             </p>
           </div>
 
@@ -91,23 +88,23 @@ export default async function Home() {
             {[
               {
                 icon: <Mosque className="w-6 h-6" />,
-                title: "Mosque Registration",
-                description: "Easily register and manage mosque profiles",
+                title: 'Mosque Registration',
+                description: 'Easily register and manage mosque profiles',
               },
               {
                 icon: <Coins className="w-6 h-6" />,
-                title: "Zakat Collection",
-                description: "Track cash and in-kind donations",
+                title: 'Zakat Collection',
+                description: 'Track cash and in-kind donations',
               },
               {
                 icon: <HandHeart className="w-6 h-6" />,
-                title: "Beneficiary Management",
-                description: "Register and manage zakat recipients",
+                title: 'Beneficiary Management',
+                description: 'Register and manage zakat recipients',
               },
               {
                 icon: <BarChart4 className="w-6 h-6" />,
-                title: "Detailed Analytics",
-                description: "Comprehensive reporting and insights",
+                title: 'Detailed Analytics',
+                description: 'Comprehensive reporting and insights',
               },
             ].map((feature, index) => (
               <div
@@ -127,20 +124,15 @@ export default async function Home() {
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">
-              Role-Based Access Control
-            </h2>
+            <h2 className="text-3xl font-bold mb-4">Role-Based Access Control</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Our platform provides tailored experiences for different user
-              roles.
+              Our platform provides tailored experiences for different user roles.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white p-6 rounded-xl shadow-sm">
-              <div className="text-primary mb-4 text-xl font-semibold">
-                Super Admin
-              </div>
+              <div className="text-primary mb-4 text-xl font-semibold">Super Admin</div>
               <ul className="space-y-2 text-gray-600">
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
@@ -162,9 +154,7 @@ export default async function Home() {
             </div>
 
             <div className="bg-white p-6 rounded-xl shadow-sm">
-              <div className="text-primary mb-4 text-xl font-semibold">
-                Mosque Admin
-              </div>
+              <div className="text-primary mb-4 text-xl font-semibold">Mosque Admin</div>
               <ul className="space-y-2 text-gray-600">
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
@@ -186,9 +176,7 @@ export default async function Home() {
             </div>
 
             <div className="bg-white p-6 rounded-xl shadow-sm">
-              <div className="text-primary mb-4 text-xl font-semibold">
-                Clerk
-              </div>
+              <div className="text-primary mb-4 text-xl font-semibold">Clerk</div>
               <ul className="space-y-2 text-gray-600">
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
@@ -239,21 +227,18 @@ export default async function Home() {
       {/* CTA Section */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">
-            Ready to Streamline Your Zakat Management?
-          </h2>
+          <h2 className="text-3xl font-bold mb-4">Ready to Streamline Your Zakat Management?</h2>
           <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-            Join mosques across the country who trust ZakatConnect for efficient
-            and transparent zakat management.
+            Join mosques across the country who trust ZakatConnect for efficient and transparent
+            zakat management.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/sign-up"
-              className="inline-flex items-center px-6 py-3 text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors"
-            >
-              Register Your Mosque
-              <ArrowUpRight className="ml-2 w-4 h-4" />
-            </Link>
+            <MosqueRegistrationDialog>
+              <Button className="inline-flex items-center px-6 py-3 text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors h-auto">
+                Register Your Mosque
+                <ArrowUpRight className="ml-2 w-4 h-4" />
+              </Button>
+            </MosqueRegistrationDialog>
             <Link
               href="/public-analytics"
               className="inline-flex items-center px-6 py-3 text-primary bg-white border border-primary rounded-lg hover:bg-blue-50 transition-colors"
