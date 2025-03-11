@@ -94,7 +94,13 @@ export default async function DistributionsPage() {
 
   return (
     <DistributionsClient
-      distributions={distributions || []}
+      distributions={
+        distributions?.map((d) => ({
+          ...d,
+          mosques: d.mosques[0], // Convert array to single object
+          beneficiaries: d.beneficiaries[0], // Convert array to single object
+        })) || []
+      }
       beneficiaries={beneficiaries || []}
       mosques={mosques || []}
       userRole={userData?.role}
