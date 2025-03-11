@@ -138,8 +138,12 @@ export default function DistributionsClient({
     if (newDistributions) {
       const typedDistributions = newDistributions.map((d: any) => ({
         ...d,
-        mosques: d.mosques[0],
-        beneficiaries: d.beneficiaries[0],
+        mosques: d.mosques?.[0] || { id: 'unknown', name: 'Unknown Mosque' },
+        beneficiaries: d.beneficiaries?.[0] || {
+          id: 'unknown',
+          name: 'Unknown Beneficiary',
+          code: 'N/A',
+        },
       }));
       setDistributions(typedDistributions as Distribution[]);
     }
@@ -353,9 +357,12 @@ export default function DistributionsClient({
                   <div className="text-gray-600">
                     {new Date(distribution.distribution_date).toLocaleDateString()}
                   </div>
-                  <div className="text-gray-600">{distribution.mosques.name}</div>
                   <div className="text-gray-600">
-                    {distribution.beneficiaries.name} ({distribution.beneficiaries.code})
+                    {distribution.mosques?.name || 'Unknown Mosque'}
+                  </div>
+                  <div className="text-gray-600">
+                    {distribution.beneficiaries?.name || 'Unknown'} (
+                    {distribution.beneficiaries?.code || 'N/A'})
                   </div>
                   <div className="text-gray-600">${distribution.amount.toFixed(2)}</div>
                   <div className="flex gap-2">
