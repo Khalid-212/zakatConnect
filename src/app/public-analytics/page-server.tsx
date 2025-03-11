@@ -58,7 +58,11 @@ export default async function PublicAnalyticsPageServer() {
 
   const { data: distributions, error: distributionsError } = await supabase
     .from("zakat_distributions")
-    .select("amount, type, distribution_date, mosque_id, mosques(name)");
+    .select("amount, distribution_date, mosque_id, mosques(name)");
+
+  if (distributionsError) {
+    console.error("Error fetching distributions:", distributionsError);
+  }
 
   // Get total beneficiaries and givers count
   const { count: beneficiariesCount } = await supabase
@@ -87,8 +91,12 @@ export default async function PublicAnalyticsPageServer() {
     }, 0) || 0;
 
   // Total distributed is directly from the zakat_distributions table
-  const totalDistributed =
-    distributions?.reduce((sum, item) => sum + (item.amount || 0), 0) || 0;
+  const totalDistributed = distributions
+    ? distributions.reduce((sum, item) => {
+        const amount = item.amount || 0;
+        return sum + amount;
+      }, 0)
+    : 0;
 
   // Current balance is the difference between collected and distributed
   const balance = totalCollected - totalDistributed;
@@ -138,6 +146,8 @@ export default async function PublicAnalyticsPageServer() {
 
   // Process mosque data for pie chart
   const mosqueTotals: Dictionary<number> = {};
+
+  // Calculate totals from collections
   collections?.forEach((collection) => {
     const mosqueName = collection.mosques?.[0]?.name || "Unknown Mosque";
     if (!mosqueTotals[mosqueName]) {
@@ -156,11 +166,20 @@ export default async function PublicAnalyticsPageServer() {
     }
   });
 
+  // Add distributions to mosque totals
+  distributions?.forEach((distribution) => {
+    const mosqueName = distribution.mosques?.[0]?.name || "Unknown Mosque";
+    if (!mosqueTotals[mosqueName]) {
+      mosqueTotals[mosqueName] = 0;
+    }
+    mosqueTotals[mosqueName] += distribution.amount || 0;
+  });
+
   // Calculate percentages for pie chart
   const totalAmount = Object.values(mosqueTotals).reduce(
-    (sum: any, amount: any) => sum + amount,
+    (sum, amount) => sum + amount,
     0
-  ) as number;
+  );
 
   // Define colors for the pie chart
   const COLORS = [
@@ -174,18 +193,19 @@ export default async function PublicAnalyticsPageServer() {
     "#8dd1e1",
   ];
 
-  const mosqueDistribution = Object.entries(mosqueTotals).map(
-    ([name, amount], index) => {
+  const mosqueDistribution = Object.entries(mosqueTotals)
+    .filter(([_, amount]) => amount > 0) // Only include mosques with non-zero amounts
+    .map(([name, amount], index) => {
       // Find mosque id by name
       const mosque = mosques?.find((m) => m.name === name);
       return {
         name,
         id: mosque?.id || null,
-        value: Math.round(((amount as number) / totalAmount) * 100),
+        value: Math.round((amount / totalAmount) * 100),
         color: COLORS[index % COLORS.length],
       };
-    }
-  );
+    })
+    .sort((a, b) => b.value - a.value); // Sort by value in descending order
 
   return (
     <PublicAnalyticsClient

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Sidebar from "@/components/sidebar";
 import { Button } from "@/components/ui/button";
 import { BarChart4, Calendar, Download, Filter } from "lucide-react";
@@ -18,13 +19,18 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Define colors for the pie chart
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
-// Product type distribution will be passed as props
-
-export default function AnalyticsClient(props: {
+interface AnalyticsClientProps {
   totalCollected: number;
   totalDistributed: number;
   balance: number;
@@ -32,12 +38,54 @@ export default function AnalyticsClient(props: {
   productDistribution: { name: string; value: number; color: string }[];
   beneficiariesCount: number;
   giversCount: number;
-}) {
+  mosques: { id: string; name: string }[];
+  defaultMosqueId: string | null;
+  userRole: string;
+}
+
+export default function AnalyticsClient({
+  totalCollected,
+  totalDistributed,
+  balance,
+  monthlyData,
+  productDistribution,
+  beneficiariesCount,
+  giversCount,
+  mosques,
+  defaultMosqueId,
+  userRole,
+}: AnalyticsClientProps) {
+  const [selectedMosqueId, setSelectedMosqueId] = useState(defaultMosqueId);
+
   return (
     <div className="flex h-screen">
       <Sidebar />
       <main className="flex-1 overflow-auto bg-gray-50">
         <div className="p-8 max-w-7xl mx-auto">
+          {/* Mosque Filter for super-admin */}
+          {userRole === "super-admin" && (
+            <div className="mb-6">
+              <Select
+                value={selectedMosqueId || "all"}
+                onValueChange={(value) =>
+                  setSelectedMosqueId(value === "all" ? null : value)
+                }
+              >
+                <SelectTrigger className="w-[280px]">
+                  <SelectValue placeholder="Select Mosque" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Mosques</SelectItem>
+                  {mosques.map((mosque) => (
+                    <SelectItem key={mosque.id} value={mosque.id}>
+                      {mosque.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           {/* Header Section */}
           <div className="flex justify-between items-center mb-8">
             <div>
@@ -69,7 +117,7 @@ export default function AnalyticsClient(props: {
                 </div>
               </div>
               <div className="text-3xl font-bold">
-                {props.totalCollected.toFixed(2)} ETB
+                {totalCollected.toFixed(2)} ETB
               </div>
               <span className="text-sm text-muted-foreground mt-1">
                 From all sources
@@ -85,7 +133,7 @@ export default function AnalyticsClient(props: {
                 </div>
               </div>
               <div className="text-3xl font-bold">
-                {props.totalDistributed.toFixed(2)} ETB
+                {totalDistributed.toFixed(2)} ETB
               </div>
               <span className="text-sm text-muted-foreground mt-1">
                 To all beneficiaries
@@ -100,13 +148,11 @@ export default function AnalyticsClient(props: {
                   <BarChart4 className="text-purple-600" size={18} />
                 </div>
               </div>
-              <div className="text-3xl font-bold">
-                {props.balance.toFixed(2)} ETB
-              </div>
+              <div className="text-3xl font-bold">{balance.toFixed(2)} ETB</div>
               <span
-                className={`text-sm ${props.balance < 0 ? "text-red-500 font-medium" : "text-muted-foreground"} mt-1`}
+                className={`text-sm ${balance < 0 ? "text-red-500 font-medium" : "text-muted-foreground"} mt-1`}
               >
-                {props.balance < 0
+                {balance < 0
                   ? "Deficit - More distributed than collected"
                   : "Available for distribution"}
               </span>
@@ -131,7 +177,7 @@ export default function AnalyticsClient(props: {
             <div className="h-80 border rounded-lg bg-gray-50 p-4">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
-                  data={props.monthlyData}
+                  data={monthlyData}
                   margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
@@ -168,8 +214,8 @@ export default function AnalyticsClient(props: {
                   data={[
                     {
                       name: "Total",
-                      beneficiaries: props.beneficiariesCount,
-                      givers: props.giversCount,
+                      beneficiaries: beneficiariesCount,
+                      givers: giversCount,
                     },
                   ]}
                   margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
@@ -200,7 +246,7 @@ export default function AnalyticsClient(props: {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={props.productDistribution}
+                      data={productDistribution}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
@@ -211,7 +257,7 @@ export default function AnalyticsClient(props: {
                         `${name}: ${(percent * 100).toFixed(0)}%`
                       }
                     >
-                      {props.productDistribution.map((entry, index) => (
+                      {productDistribution.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -220,7 +266,7 @@ export default function AnalyticsClient(props: {
                 </ResponsiveContainer>
               </div>
               <div className="space-y-4">
-                {props.productDistribution.map((category, index) => (
+                {productDistribution.map((category, index) => (
                   <div
                     key={index}
                     className="flex justify-between items-center p-3 border rounded-lg"

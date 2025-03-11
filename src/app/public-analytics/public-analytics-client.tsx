@@ -51,39 +51,21 @@ export default function PublicAnalyticsClient(props: {
   );
 
   // Filter data based on selected mosque
-  // Filter monthly data based on selected mosque
-  const filteredMonthlyData = props.monthlyData;
+  const filteredMonthlyData =
+    selectedMosqueId && selectedMosqueId !== "all"
+      ? props.monthlyData.map((day) => ({
+          month: day.month,
+          collections: day[`mosque_${selectedMosqueId}`] || 0,
+          distributions: day[`mosque_dist_${selectedMosqueId}`] || 0,
+        }))
+      : props.monthlyData;
 
-  // If a specific mosque is selected, we need to modify the data
-  if (selectedMosqueId && selectedMosqueId !== "all") {
-    // Create a deep copy of the data to avoid modifying the original
-    const filteredData = JSON.parse(JSON.stringify(props.monthlyData));
-
-    // For each day, replace the collections and distributions values with mosque-specific values
-    filteredData.forEach((day: any) => {
-      // Replace collections with mosque-specific collections
-      if (day[`mosque_${selectedMosqueId}`]) {
-        day.collections = day[`mosque_${selectedMosqueId}`];
-      } else {
-        day.collections = 0;
-      }
-
-      // Replace distributions with mosque-specific distributions
-      if (day[`mosque_dist_${selectedMosqueId}`]) {
-        day.distributions = day[`mosque_dist_${selectedMosqueId}`];
-      } else {
-        day.distributions = 0;
-      }
-    });
-
-    return filteredData;
-  }
-
-  return props.monthlyData;
-
+  // Filter mosque distribution based on selected mosque
   const filteredMosqueDistribution =
     selectedMosqueId && selectedMosqueId !== "all"
-      ? props.mosqueDistribution.filter((item: any) => item.id === selectedMosqueId)
+      ? props.mosqueDistribution.filter(
+          (item: any) => item.id === selectedMosqueId
+        )
       : props.mosqueDistribution;
 
   // Calculate filtered totals
