@@ -1,24 +1,24 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import Sidebar from "@/components/sidebar";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import Link from "next/link";
-import { createBeneficiary } from "./actions";
+import { useRouter } from 'next/navigation';
+import Sidebar from '@/components/sidebar';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import Link from 'next/link';
+import { createBeneficiary } from './actions';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { toast } from "sonner";
-import { useEffect, useState, useCallback } from "react";
-import { createClient } from "../../../../supabase/client";
+} from '@/components/ui/select';
+import { toast } from 'sonner';
+import { useEffect, useState, useCallback } from 'react';
+import { createClient } from '../../../../supabase/client';
 
 interface Mosque {
   id: string;
@@ -42,7 +42,7 @@ export default function NewBeneficiaryPage() {
   const [wheatPrice, setWheatPrice] = useState<number>(0);
   const [familyMembers, setFamilyMembers] = useState<number>(1);
   const [calculatedAmount, setCalculatedAmount] = useState<number>(0);
-  const [beneficiaryCode, setBeneficiaryCode] = useState<string>("");
+  const [beneficiaryCode, setBeneficiaryCode] = useState<string>('');
   const supabase = createClient();
 
   // Generate a unique beneficiary code
@@ -50,15 +50,11 @@ export default function NewBeneficiaryPage() {
     const timestamp = Date.now().toString().slice(-6);
     const randomPart = Math.floor(Math.random() * 1000)
       .toString()
-      .padStart(3, "0");
+      .padStart(3, '0');
     const code = `BEN-${timestamp}-${randomPart}`;
 
     // Check if code already exists
-    const { data } = await supabase
-      .from("beneficiaries")
-      .select("id")
-      .eq("code", code)
-      .single();
+    const { data } = await supabase.from('beneficiaries').select('id').eq('code', code).single();
 
     if (data) {
       // Code exists, try again
@@ -83,9 +79,9 @@ export default function NewBeneficiaryPage() {
 
         // Get wheat price
         const { data: wheatProduct } = await supabase
-          .from("product_types")
-          .select("price")
-          .eq("name", "Wheat")
+          .from('product_types')
+          .select('price')
+          .eq('name', 'Wheat')
           .single();
 
         if (wheatProduct) {
@@ -99,9 +95,9 @@ export default function NewBeneficiaryPage() {
         if (!user) return;
 
         const { data: userData } = await supabase
-          .from("users")
-          .select("role")
-          .eq("id", user.id)
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
           .single();
 
         if (userData) {
@@ -109,11 +105,11 @@ export default function NewBeneficiaryPage() {
         }
 
         // If super-admin, fetch all mosques
-        if (userData?.role === "super-admin") {
+        if (userData?.role === 'super-admin') {
           const { data: mosquesData } = await supabase
-            .from("mosques")
-            .select("id, name")
-            .order("name");
+            .from('mosques')
+            .select('id, name')
+            .order('name');
 
           if (mosquesData) {
             setMosques(mosquesData);
@@ -121,9 +117,9 @@ export default function NewBeneficiaryPage() {
         } else {
           // For other roles, get their associated mosque
           const { data: mosqueAdmin } = (await supabase
-            .from("mosque_admins")
-            .select("mosque_id, mosques:mosques(id, name)")
-            .eq("user_id", user.id)
+            .from('mosque_admins')
+            .select('mosque_id, mosques:mosques(id, name)')
+            .eq('user_id', user.id)
             .single()) as { data: MosqueAdmin | null };
 
           if (mosqueAdmin) {
@@ -139,8 +135,8 @@ export default function NewBeneficiaryPage() {
           }
         }
       } catch (error) {
-        console.error("Error loading data:", error);
-        toast.error("Failed to load mosque data");
+        console.error('Error loading data:', error);
+        toast.error('Failed to load mosque data');
       } finally {
         setIsLoading(false);
       }
@@ -159,17 +155,17 @@ export default function NewBeneficiaryPage() {
     });
 
     // Add the beneficiary code and calculated amount
-    updatedFormData.append("code", beneficiaryCode);
-    updatedFormData.append("amount", calculatedAmount.toString());
+    updatedFormData.append('code', beneficiaryCode);
+    updatedFormData.append('amount', calculatedAmount.toString());
 
-    if (userRole === "super-admin") {
-      const selectedMosque = formData.get("mosque_id");
+    if (userRole === 'super-admin') {
+      const selectedMosque = formData.get('mosque_id');
       if (!selectedMosque) {
-        toast.error("Please select a mosque");
+        toast.error('Please select a mosque');
         return;
       }
     } else if (selectedMosqueId) {
-      updatedFormData.set("mosque_id", selectedMosqueId);
+      updatedFormData.set('mosque_id', selectedMosqueId);
     }
 
     const result = await createBeneficiary(updatedFormData);
@@ -178,7 +174,7 @@ export default function NewBeneficiaryPage() {
       toast.error(result.error);
     } else if (result.success) {
       toast.success(result.success);
-      router.push("/beneficiaries");
+      router.push('/beneficiaries');
     }
   }
 
@@ -200,9 +196,7 @@ export default function NewBeneficiaryPage() {
             </Link>
             <div>
               <h1 className="text-2xl font-bold">Register New Beneficiary</h1>
-              <p className="text-muted-foreground">
-                Add a new zakat beneficiary to the system
-              </p>
+              <p className="text-muted-foreground">Add a new zakat beneficiary to the system</p>
             </div>
           </div>
 
@@ -210,7 +204,7 @@ export default function NewBeneficiaryPage() {
           <div className="bg-white rounded-lg border p-6">
             <form action={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {userRole === "super-admin" && (
+                {userRole === 'super-admin' && (
                   <div className="space-y-2">
                     <Label htmlFor="mosque_id">Mosque</Label>
                     <Select name="mosque_id" required>
@@ -230,12 +224,7 @@ export default function NewBeneficiaryPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    placeholder="Enter full name"
-                    required
-                  />
+                  <Input id="name" name="name" placeholder="Enter full name" required />
                 </div>
 
                 <div className="space-y-2">
@@ -248,26 +237,20 @@ export default function NewBeneficiaryPage() {
                       <SelectItem value="Addis Ababa">Addis Ababa</SelectItem>
                       <SelectItem value="Afar">Afar</SelectItem>
                       <SelectItem value="Amhara">Amhara</SelectItem>
-                      <SelectItem value="Benishangul-Gumuz">
-                        Benishangul-Gumuz
-                      </SelectItem>
-                      <SelectItem value="Central Ethiopia">
-                        Central Ethiopia
-                      </SelectItem>
+                      <SelectItem value="Benishangul-Gumuz">Benishangul-Gumuz</SelectItem>
+                      <SelectItem value="Central Ethiopia">Central Ethiopia</SelectItem>
                       <SelectItem value="Dire Dawa">Dire Dawa</SelectItem>
                       <SelectItem value="Gambella">Gambella</SelectItem>
                       <SelectItem value="Harari">Harari</SelectItem>
                       <SelectItem value="Oromia">Oromia</SelectItem>
                       <SelectItem value="Sidama">Sidama</SelectItem>
                       <SelectItem value="Somali">Somali</SelectItem>
-                      <SelectItem value="South Ethiopia">
-                        South Ethiopia
-                      </SelectItem>
+                      <SelectItem value="South Ethiopia">South Ethiopia</SelectItem>
                       <SelectItem value="Southern Nations, Nationalities, and Peoples'">
-                        Southern Nations, Nationalities, and Peoples'
+                        Southern Nations, Nationalities, and Peoples&apos;
                       </SelectItem>
                       <SelectItem value="South West Ethiopia Peoples'">
-                        South West Ethiopia Peoples'
+                        South West Ethiopia Peoples&apos;
                       </SelectItem>
                       <SelectItem value="Tigray">Tigray</SelectItem>
                     </SelectContent>
@@ -276,48 +259,26 @@ export default function NewBeneficiaryPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
-                    name="city"
-                    placeholder="Enter city"
-                    required
-                  />
+                  <Input id="city" name="city" placeholder="Enter city" required />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="sub_city">Sub-City</Label>
-                  <Input
-                    id="sub_city"
-                    name="sub_city"
-                    placeholder="Enter sub-city"
-                    required
-                  />
+                  <Input id="sub_city" name="sub_city" placeholder="Enter sub-city" required />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="woreda">Woreda</Label>
-                  <Input
-                    id="woreda"
-                    name="woreda"
-                    placeholder="Enter woreda"
-                    required
-                  />
+                  <Input id="woreda" name="woreda" placeholder="Enter woreda" required />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    placeholder="Enter phone number"
-                    required
-                  />
+                  <Input id="phone" name="phone" placeholder="Enter phone number" required />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="family_members">
-                    Number of Family Members
-                  </Label>
+                  <Label htmlFor="family_members">Number of Family Members</Label>
                   <Input
                     id="family_members"
                     name="family_members"
@@ -325,16 +286,12 @@ export default function NewBeneficiaryPage() {
                     placeholder="Enter number of family members"
                     required
                     defaultValue="1"
-                    onChange={(e) =>
-                      setFamilyMembers(parseInt(e.target.value) || 1)
-                    }
+                    onChange={(e) => setFamilyMembers(parseInt(e.target.value) || 1)}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="calculated_amount">
-                    Calculated Amount (ETB)
-                  </Label>
+                  <Label htmlFor="calculated_amount">Calculated Amount (ETB)</Label>
                   <Input
                     id="calculated_amount"
                     value={calculatedAmount.toFixed(2)}

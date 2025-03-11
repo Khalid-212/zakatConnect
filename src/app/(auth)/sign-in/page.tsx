@@ -1,10 +1,10 @@
-import { signInAction } from "@/app/actions";
-import { FormMessage, Message } from "@/components/form-message";
-import Navbar from "@/components/navbar";
-import { SubmitButton } from "@/components/submit-button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import Link from "next/link";
+import { signInAction } from '@/app/actions';
+import { FormMessage, Message } from '@/components/form-message';
+import Navbar from '@/components/navbar';
+import { SubmitButton } from '@/components/submit-button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import Link from 'next/link';
 
 interface LoginProps {
   searchParams: Promise<Message>;
@@ -13,7 +13,7 @@ interface LoginProps {
 export default async function SignInPage({ searchParams }: LoginProps) {
   const message = await searchParams;
 
-  if ("message" in message) {
+  if ('message' in message) {
     return (
       <div className="flex h-screen w-full flex-1 items-center justify-center p-4 sm:max-w-md">
         <FormMessage message={message} />
@@ -30,7 +30,7 @@ export default async function SignInPage({ searchParams }: LoginProps) {
             <div className="space-y-2 text-center">
               <h1 className="text-3xl font-semibold tracking-tight">Sign in</h1>
               <p className="text-sm text-muted-foreground">
-                Don't have an account?{" "}
+                Don&apos;t have an account?{' '}
                 <Link
                   className="text-primary font-medium hover:underline transition-all"
                   href="/sign-up"
@@ -78,11 +78,7 @@ export default async function SignInPage({ searchParams }: LoginProps) {
               </div>
             </div>
 
-            <SubmitButton
-              className="w-full"
-              pendingText="Signing in..."
-              formAction={signInAction}
-            >
+            <SubmitButton className="w-full" pendingText="Signing in..." formAction={signInAction}>
               Sign in
             </SubmitButton>
 
