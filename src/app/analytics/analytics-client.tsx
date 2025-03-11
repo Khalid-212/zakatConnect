@@ -103,8 +103,12 @@ export default function AnalyticsClient({
                 </div>
               </div>
               <div className="text-3xl font-bold">{balance.toFixed(2)} ETB</div>
-              <span className="text-sm text-muted-foreground mt-1">
-                Available for distribution
+              <span
+                className={`text-sm ${balance < 0 ? "text-red-500 font-medium" : "text-muted-foreground"} mt-1`}
+              >
+                {balance < 0
+                  ? "Deficit - More distributed than collected"
+                  : "Available for distribution"}
               </span>
             </div>
           </div>
@@ -163,7 +167,7 @@ export default function AnalyticsClient({
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={CATEGORIES}
+                      data={productDistribution}
                       cx="50%"
                       cy="50%"
                       labelLine={false}

@@ -13,16 +13,13 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+import { checkUserAccess } from "../auth/check-access";
+
 export default async function ReportsPage() {
+  // Only super-admin and admin can access reports
+  await checkUserAccess(["super-admin", "admin"]);
+
   const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return redirect("/sign-in");
-  }
 
   // Fetch collections for report data
   const { data: collections, error } = await supabase

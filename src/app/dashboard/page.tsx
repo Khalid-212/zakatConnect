@@ -87,11 +87,13 @@ export default async function Dashboard() {
 
   const { data: collectionsData, error: collectionsError } = await supabase
     .from("zakat_collections")
-    .select("amount, type");
+    .select("amount, type, product_type_id");
 
   const { data: recentActivity, error: activityError } = await supabase
     .from("zakat_collections")
-    .select("amount, collection_date, description, givers(name)")
+    .select(
+      "amount, collection_date, description, type, product_type_id, givers(name)",
+    )
     .order("collection_date", { ascending: false })
     .limit(3);
 
@@ -104,10 +106,33 @@ export default async function Dashboard() {
       ?.filter((item) => item.type === "cash")
       .reduce((sum, item) => sum + (item.amount || 0), 0) || 0;
 
-  const inKindCollections =
-    collectionsData
-      ?.filter((item) => item.type === "in_kind")
-      .reduce((sum, item) => sum + (item.amount || 0), 0) || 0;
+  // For in-kind donations, calculate based on product type and quantity
+  let inKindCollections = 0;
+  const inKindItems =
+    collectionsData?.filter((item) => item.type === "in_kind") || [];
+
+  // Fetch product types to get prices
+  const { data: productTypes } = await supabase
+    .from("product_types")
+    .select("id, price");
+
+  // Create a map of product type IDs to prices
+  const productPriceMap = {};
+  productTypes?.forEach((product) => {
+    productPriceMap[product.id] = product.price;
+  });
+
+  // Calculate in-kind value based on product prices
+  inKindItems.forEach((item) => {
+    if (item.product_type_id && productPriceMap[item.product_type_id]) {
+      // Multiply quantity (amount) by the product price
+      inKindCollections +=
+        (item.amount || 0) * productPriceMap[item.product_type_id];
+    } else {
+      // If no product type, just use the amount
+      inKindCollections += item.amount || 0;
+    }
+  });
 
   // Format activity data
   const formattedActivity =
@@ -117,9 +142,22 @@ export default async function Dashboard() {
       const diffTime = Math.abs(now.getTime() - collectionDate.getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
+      // Calculate the actual value for in-kind donations
+      let displayAmount = item.amount;
+      if (
+        item.type === "in_kind" &&
+        item.product_type_id &&
+        productPriceMap[item.product_type_id]
+      ) {
+        displayAmount = item.amount * productPriceMap[item.product_type_id];
+      }
+
       return {
-        type: "Zakat payment received",
-        amount: item.amount,
+        type:
+          item.type === "cash"
+            ? "Cash payment received"
+            : "In-kind donation received",
+        amount: displayAmount,
         currency: "ETB",
         from: (item?.givers && item.givers[0]?.name) || "Anonymous",
         daysAgo: diffDays,

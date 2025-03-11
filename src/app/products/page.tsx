@@ -7,16 +7,13 @@ import { Input } from "@/components/ui/input";
 import { createProduct, deleteProduct } from "./actions";
 import { ProductDialog } from "./product-dialog";
 
+import { checkUserAccess } from "../auth/check-access";
+
 export default async function ProductsPage() {
+  // Only super-admin and admin can access product management
+  await checkUserAccess(["super-admin", "admin"]);
+
   const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return redirect("/sign-in");
-  }
 
   // Fetch products
   const { data: products, error } = await supabase

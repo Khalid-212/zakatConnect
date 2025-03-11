@@ -17,6 +17,20 @@ export function useDonationCalculator() {
     if (amountInput) {
       amountInput.value = amount.toString();
     }
+
+    // Also update the mosque_id field if it exists
+    const mosqueIdInput = document.getElementById(
+      "mosque_id",
+    ) as HTMLInputElement;
+    if (mosqueIdInput && mosqueIdInput.value === "") {
+      // Try to get the mosque ID from the select element
+      const mosqueSelect = document.querySelector(
+        "select[name='mosque_id']",
+      ) as HTMLSelectElement;
+      if (mosqueSelect && mosqueSelect.value) {
+        mosqueIdInput.value = mosqueSelect.value;
+      }
+    }
   }, [familyMembers, productPrice]);
 
   return {

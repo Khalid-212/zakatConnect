@@ -6,16 +6,13 @@ import { Building2 as Mosque, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 
+import { checkUserAccess } from "../auth/check-access";
+
 export default async function MosquesPage() {
+  // Only super-admin and admin can access mosque management
+  await checkUserAccess(["super-admin", "admin"]);
+
   const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return redirect("/sign-in");
-  }
 
   // Fetch mosques from database
   const { data: mosques, error } = await supabase

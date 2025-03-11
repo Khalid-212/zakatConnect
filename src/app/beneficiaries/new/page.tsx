@@ -48,48 +48,50 @@ export default function NewBeneficiaryPage() {
   // Generate a unique beneficiary code
   const generateBeneficiaryCode = useCallback(async () => {
     const timestamp = Date.now().toString().slice(-6);
-    const randomPart = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
+    const randomPart = Math.floor(Math.random() * 1000)
+      .toString()
+      .padStart(3, "0");
     const code = `BEN-${timestamp}-${randomPart}`;
-    
+
     // Check if code already exists
     const { data } = await supabase
       .from("beneficiaries")
       .select("id")
       .eq("code", code)
       .single();
-      
+
     if (data) {
       // Code exists, try again
       return generateBeneficiaryCode();
     }
-    
+
     return code;
   }, [supabase]);
-  
+
   // Calculate donation amount based on family members and wheat price
   useEffect(() => {
     const amount = familyMembers * 2.5 * wheatPrice;
     setCalculatedAmount(amount);
   }, [familyMembers, wheatPrice]);
-  
+
   useEffect(() => {
     async function loadData() {
       try {
         // Generate unique code
         const code = await generateBeneficiaryCode();
         setBeneficiaryCode(code);
-        
+
         // Get wheat price
         const { data: wheatProduct } = await supabase
           .from("product_types")
           .select("price")
           .eq("name", "Wheat")
           .single();
-          
+
         if (wheatProduct) {
           setWheatPrice(wheatProduct.price);
         }
-      try {
+
         // Get user role
         const {
           data: { user },
@@ -155,7 +157,7 @@ export default function NewBeneficiaryPage() {
     Array.from(formData.entries()).forEach(([key, value]) => {
       updatedFormData.append(key, value);
     });
-    
+
     // Add the beneficiary code and calculated amount
     updatedFormData.append("code", beneficiaryCode);
     updatedFormData.append("amount", calculatedAmount.toString());
@@ -323,21 +325,27 @@ export default function NewBeneficiaryPage() {
                     placeholder="Enter number of family members"
                     required
                     defaultValue="1"
-                    onChange={(e) => setFamilyMembers(parseInt(e.target.value) || 1)}
+                    onChange={(e) =>
+                      setFamilyMembers(parseInt(e.target.value) || 1)
+                    }
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="calculated_amount">Calculated Amount (ETB)</Label>
+                  <Label htmlFor="calculated_amount">
+                    Calculated Amount (ETB)
+                  </Label>
                   <Input
                     id="calculated_amount"
                     value={calculatedAmount.toFixed(2)}
                     readOnly
                     className="bg-gray-50"
                   />
-                  <p className="text-xs text-muted-foreground">Based on family members × 2.5 × wheat price</p>
+                  <p className="text-xs text-muted-foreground">
+                    Based on family members × 2.5 × wheat price
+                  </p>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="beneficiary_code">Beneficiary Code</Label>
                   <Input
@@ -347,7 +355,7 @@ export default function NewBeneficiaryPage() {
                     className="bg-gray-50"
                   />
                 </div>
-                
+
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="remark">Remark</Label>
                   <Textarea

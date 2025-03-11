@@ -18,13 +18,41 @@ import {
 } from "lucide-react";
 import { createClient } from "../../supabase/client";
 import { useRouter } from "next/navigation";
-import { useAuthRole } from "@/hooks/use-auth-role";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const supabase = createClient();
   const router = useRouter();
-  const { userRole, isLoading } = useAuthRole();
+  const [userRole, setUserRole] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchUserRole() {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (user) {
+          const { data } = await supabase
+            .from("users")
+            .select("role")
+            .eq("id", user.id)
+            .single();
+
+          if (data?.role) {
+            setUserRole(data.role);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user role:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchUserRole();
+  }, []);
 
   const isActive = (path: string) => {
     return pathname === path;
@@ -113,8 +141,8 @@ export default function Sidebar() {
             </Link>
           )}
 
-          {/* Super Admin can see Reports */}
-          {userRole === "super-admin" && (
+          {/* Super Admin and Admin can see Reports */}
+          {(userRole === "super-admin" || userRole === "admin") && (
             <Link
               href="/reports"
               className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${isActive("/reports") ? "bg-blue-50 text-primary" : "text-gray-700 hover:bg-gray-100"}`}
@@ -124,8 +152,8 @@ export default function Sidebar() {
             </Link>
           )}
 
-          {/* Super Admin can see Analytics */}
-          {userRole === "super-admin" && (
+          {/* Super Admin and Admin can see Analytics */}
+          {(userRole === "super-admin" || userRole === "admin") && (
             <Link
               href="/analytics"
               className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${isActive("/analytics") ? "bg-blue-50 text-primary" : "text-gray-700 hover:bg-gray-100"}`}

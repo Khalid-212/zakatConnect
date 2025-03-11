@@ -188,40 +188,39 @@ export default function ClientGiverPage() {
                     }
                   />
                 </div>
-                {userRole === "super-admin" ? (
-                  <div className="space-y-2">
-                    <Label htmlFor="mosque_id">Mosque</Label>
-                    <Select name="mosque_id">
+                <div className="space-y-2">
+                  <Label htmlFor="mosque_id">Mosque</Label>
+                  {userRole === "super-admin" ? (
+                    <Select name="mosque_id" required>
                       <SelectTrigger>
                         <SelectValue placeholder="Select mosque" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {mosques?.map((mosque) => (
-                        <SelectItem key={mosque.id} value={mosque.id}>
-                          {mosque.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {mosques?.map((mosque) => (
+                          <SelectItem key={mosque.id} value={mosque.id}>
+                            {mosque.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
                     </Select>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Label htmlFor="mosque_id">Mosque</Label>
-                    {/* Adding a hidden input to send the mosque ID in the form */}
-                    <input
-                      type="hidden"
-                      id="mosque_id"
-                      name="mosque_id"
-                      value={userMosque?.id || ""}
-                    />
+                  ) : (
+                    <>
+                      {/* Adding a hidden input to send the mosque ID in the form */}
+                      <input
+                        type="hidden"
+                        id="mosque_id"
+                        name="mosque_id"
+                        value={userMosque?.id || ""}
+                      />
 
-                    <Input
-                      placeholder={userMosque?.name || "Loading mosque..."}
-                      value={userMosque?.name || ""}
-                      readOnly
-                    />
-                  </div>
-                )}
+                      <Input
+                        placeholder={userMosque?.name || "Loading mosque..."}
+                        value={userMosque?.name || ""}
+                        readOnly
+                      />
+                    </>
+                  )}
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="product_type_id">Product Type</Label>
                   <Select

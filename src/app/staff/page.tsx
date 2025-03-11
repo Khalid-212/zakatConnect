@@ -14,16 +14,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import { checkUserAccess } from "../auth/check-access";
+
 export default async function StaffPage() {
+  // Only super-admin and admin can access staff management
+  await checkUserAccess(["super-admin", "admin"]);
+
   const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return redirect("/sign-in");
-  }
 
   // Fetch mosques for the dropdown
   const { data: mosques } = await supabase

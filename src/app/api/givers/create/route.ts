@@ -14,6 +14,13 @@ export async function POST(request: NextRequest) {
   const productTypeId = formData.get("product_type_id") as string;
   const mosqueId = formData.get("mosque_id") as string;
 
+  if (!mosqueId) {
+    return NextResponse.json(
+      { error: "Mosque ID is required" },
+      { status: 400 },
+    );
+  }
+
   try {
     // Create giver
     const { data: giver, error: giverError } = await supabase
