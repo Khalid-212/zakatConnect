@@ -6,6 +6,10 @@ import { UsersRound, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 
+interface Dictionary<T> {
+  [key: string]: T;
+}
+
 export default async function GiversPage() {
   const supabase = await createClient();
 
@@ -31,7 +35,7 @@ export default async function GiversPage() {
     .in("giver_id", giverIds);
 
   // Calculate total donations per giver
-  const totalDonations = {};
+  const totalDonations: Dictionary<number> = {};
   donations?.forEach((donation) => {
     if (donation.giver_id) {
       totalDonations[donation.giver_id] =

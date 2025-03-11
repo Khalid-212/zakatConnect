@@ -92,7 +92,7 @@ export default async function Dashboard() {
   const { data: recentActivity, error: activityError } = await supabase
     .from("zakat_collections")
     .select(
-      "amount, collection_date, description, type, product_type_id, givers(name)",
+      "amount, collection_date, description, type, product_type_id, givers(name)"
     )
     .order("collection_date", { ascending: false })
     .limit(3);
@@ -117,7 +117,7 @@ export default async function Dashboard() {
     .select("id, price");
 
   // Create a map of product type IDs to prices
-  const productPriceMap = {};
+  const productPriceMap: { [key: string]: number } = {};
   productTypes?.forEach((product) => {
     productPriceMap[product.id] = product.price;
   });

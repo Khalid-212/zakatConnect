@@ -29,6 +29,11 @@ import Link from "next/link";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
+// Add this interface before the component
+interface Dictionary<T> {
+  [key: string]: T;
+}
+
 export default function PublicAnalyticsClient(props: {
   totalCollected: number;
   totalDistributed: number;
@@ -38,9 +43,11 @@ export default function PublicAnalyticsClient(props: {
   beneficiariesCount: number;
   giversCount: number;
   mosques: { id: string; name: string }[];
+  totalCollectedByMosque: Dictionary<number>;
+  totalDistributedByMosque: Dictionary<number>;
 }) {
   const [selectedMosqueId, setSelectedMosqueId] = useState<string | null>(
-    "all",
+    "all"
   );
 
   // Filter data based on selected mosque
@@ -53,7 +60,7 @@ export default function PublicAnalyticsClient(props: {
     const filteredData = JSON.parse(JSON.stringify(props.monthlyData));
 
     // For each day, replace the collections and distributions values with mosque-specific values
-    filteredData.forEach((day) => {
+    filteredData.forEach((day: any) => {
       // Replace collections with mosque-specific collections
       if (day[`mosque_${selectedMosqueId}`]) {
         day.collections = day[`mosque_${selectedMosqueId}`];
@@ -76,18 +83,18 @@ export default function PublicAnalyticsClient(props: {
 
   const filteredMosqueDistribution =
     selectedMosqueId && selectedMosqueId !== "all"
-      ? props.mosqueDistribution.filter((item) => item.id === selectedMosqueId)
+      ? props.mosqueDistribution.filter((item: any) => item.id === selectedMosqueId)
       : props.mosqueDistribution;
 
   // Calculate filtered totals
   const filteredTotalCollected =
     selectedMosqueId && selectedMosqueId !== "all"
-      ? props.totalCollectedByMosque?.[selectedMosqueId] || 0
+      ? props.totalCollectedByMosque?.[selectedMosqueId as string] || 0
       : props.totalCollected;
 
   const filteredTotalDistributed =
     selectedMosqueId && selectedMosqueId !== "all"
-      ? props.totalDistributedByMosque?.[selectedMosqueId] || 0
+      ? props.totalDistributedByMosque?.[selectedMosqueId as string] || 0
       : props.totalDistributed;
 
   const filteredBalance = filteredTotalCollected - filteredTotalDistributed;

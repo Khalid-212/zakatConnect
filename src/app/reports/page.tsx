@@ -185,7 +185,7 @@ export default async function ReportsPage() {
                               ).toLocaleDateString()}
                             </td>
                             <td className="p-4 text-gray-600">
-                              {collection.mosques?.name || "Unknown Mosque"}
+                              {collection.mosques?.[0]?.name || "Unknown Mosque"}
                             </td>
                             <td className="p-4">
                               <span className="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full">
@@ -284,7 +284,7 @@ export default async function ReportsPage() {
                               ).toLocaleDateString()}
                             </td>
                             <td className="p-4 text-gray-600">
-                              {distribution.beneficiaries?.name || "Unknown"}
+                              {distribution.beneficiaries?.[0]?.name || "Unknown"}
                             </td>
                             <td className="p-4">
                               <span className="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full">

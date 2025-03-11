@@ -92,7 +92,7 @@ export async function createStaffMember(formData: FormData) {
   } catch (error) {
     console.error("Unexpected error:", error);
     return redirect(
-      `/staff?error=An unexpected error occurred: ${error.message}`,
+      `/staff?error=An unexpected error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`,
     );
   }
 }

@@ -1,6 +1,45 @@
 import { createClient } from "../../../supabase/server";
 import PublicAnalyticsClient from "./public-analytics-client";
 
+// Add these interfaces at the top of the file, after imports
+interface MosqueCollection {
+  mosque_id?: string;
+  mosques?: { name?: string }[];
+  type?: string;
+  product_type_id?: string;
+  product_types?: { price?: number; name?: string }[];
+  amount?: number;
+  collection_date?: string;
+}
+
+interface MosqueDistribution {
+  mosque_id?: string;
+  amount?: number;
+  distribution_date?: string;
+}
+
+interface Mosque {
+  id: string;
+  name: string;
+}
+
+interface Dictionary<T> {
+  [key: string]: T;
+}
+
+interface PublicAnalyticsProps {
+  totalCollected: number;
+  totalDistributed: number;
+  balance: number;
+  monthlyData: any[];
+  mosqueDistribution: { name: string; value: number; color: string }[];
+  beneficiariesCount: number;
+  giversCount: number;
+  mosques: { id: string; name: string }[];
+  totalCollectedByMosque: Dictionary<number>;
+  totalDistributedByMosque: Dictionary<number>;
+}
+
 export default async function PublicAnalyticsPageServer() {
   const supabase = await createClient();
 
@@ -14,7 +53,7 @@ export default async function PublicAnalyticsPageServer() {
   const { data: collections, error: collectionsError } = await supabase
     .from("zakat_collections")
     .select(
-      "amount, type, collection_date, mosque_id, product_type_id, product_types(name, price), mosques(name)",
+      "amount, type, collection_date, mosque_id, product_type_id, product_types(name, price), mosques(name)"
     );
 
   const { data: distributions, error: distributionsError } = await supabase
@@ -37,10 +76,10 @@ export default async function PublicAnalyticsPageServer() {
       if (
         item.type === "in_kind" &&
         item.product_type_id &&
-        item.product_types?.price
+        item.product_types?.[0]?.price
       ) {
         // Get the product price and calculate the approximate value
-        return sum + (item.amount || 0) * item.product_types.price;
+        return sum + (item.amount || 0) * (item.product_types[0].price || 0);
       } else {
         // For cash donations, use the amount directly
         return sum + (item.amount || 0);
@@ -57,12 +96,12 @@ export default async function PublicAnalyticsPageServer() {
   // Process data for monthly trends
   const monthlyData = processMonthlyData(
     collections || [],
-    distributions || [],
+    distributions || []
   );
 
   // Calculate totals by mosque for filtering
-  const totalCollectedByMosque = {};
-  const totalDistributedByMosque = {};
+  const totalCollectedByMosque: Dictionary<number> = {};
+  const totalDistributedByMosque: Dictionary<number> = {};
 
   // Initialize mosque totals
   mosques?.forEach((mosque) => {
@@ -73,18 +112,13 @@ export default async function PublicAnalyticsPageServer() {
   // Calculate collections by mosque
   collections?.forEach((collection) => {
     if (collection.mosque_id) {
-      if (!totalCollectedByMosque[collection.mosque_id]) {
-        totalCollectedByMosque[collection.mosque_id] = 0;
-      }
-
-      // For in-kind donations, calculate based on product type and quantity
       if (
         collection.type === "in_kind" &&
         collection.product_type_id &&
-        collection.product_types?.price
+        collection.product_types?.[0]?.price
       ) {
         totalCollectedByMosque[collection.mosque_id] +=
-          (collection.amount || 0) * collection.product_types.price;
+          (collection.amount || 0) * (collection.product_types[0].price || 0);
       } else {
         totalCollectedByMosque[collection.mosque_id] += collection.amount || 0;
       }
@@ -103,21 +137,20 @@ export default async function PublicAnalyticsPageServer() {
   });
 
   // Process mosque data for pie chart
-  const mosqueTotals = {};
+  const mosqueTotals: Dictionary<number> = {};
   collections?.forEach((collection) => {
-    const mosqueName = collection.mosques?.name || "Unknown Mosque";
+    const mosqueName = collection.mosques?.[0]?.name || "Unknown Mosque";
     if (!mosqueTotals[mosqueName]) {
       mosqueTotals[mosqueName] = 0;
     }
 
-    // For in-kind donations, calculate based on product type and quantity
     if (
       collection.type === "in_kind" &&
       collection.product_type_id &&
-      collection.product_types?.price
+      collection.product_types?.[0]?.price
     ) {
       mosqueTotals[mosqueName] +=
-        (collection.amount || 0) * collection.product_types.price;
+        (collection.amount || 0) * (collection.product_types[0].price || 0);
     } else {
       mosqueTotals[mosqueName] += collection.amount || 0;
     }
@@ -126,7 +159,7 @@ export default async function PublicAnalyticsPageServer() {
   // Calculate percentages for pie chart
   const totalAmount = Object.values(mosqueTotals).reduce(
     (sum: any, amount: any) => sum + amount,
-    0,
+    0
   ) as number;
 
   // Define colors for the pie chart
@@ -151,7 +184,7 @@ export default async function PublicAnalyticsPageServer() {
         value: Math.round(((amount as number) / totalAmount) * 100),
         color: COLORS[index % COLORS.length],
       };
-    },
+    }
   );
 
   return (
@@ -171,18 +204,23 @@ export default async function PublicAnalyticsPageServer() {
 }
 
 // Helper function to process data for daily trends
-function processMonthlyData(collections, distributions) {
+function processMonthlyData(
+  collections: MosqueCollection[],
+  distributions: MosqueDistribution[]
+) {
   // Add mosque ID to the monthly data for filtering
-  const dailyCollectionsByMosque = {};
-  const dailyCollections = {};
-  const dailyDistributions = {};
+  const dailyCollectionsByMosque: Dictionary<Dictionary<number>> = {};
+  const dailyCollections: Dictionary<number> = {};
+  const dailyDistributions: Dictionary<number> = {};
+  const dailyDistributionsByMosque: Dictionary<Dictionary<number>> = {};
 
   // Process collections
   collections.forEach((item) => {
     if (!item.collection_date) return;
     const date = new Date(item.collection_date);
     const dayKey = date.toISOString().split("T")[0]; // Format: YYYY-MM-DD
-    const mosqueId = item.mosque_id;
+
+    const mosqueId = item.mosque_id || "";
 
     if (!dailyCollections[dayKey]) {
       dailyCollections[dayKey] = 0;
@@ -200,9 +238,9 @@ function processMonthlyData(collections, distributions) {
     if (
       item.type === "in_kind" &&
       item.product_type_id &&
-      item.product_types?.price
+      item.product_types?.[0]?.price
     ) {
-      const amount = (item.amount || 0) * item.product_types.price;
+      const amount = (item.amount || 0) * (item.product_types[0].price || 0);
       dailyCollections[dayKey] += amount;
       if (item.mosque_id) {
         dailyCollectionsByMosque[dayKey][item.mosque_id] += amount;
@@ -217,13 +255,12 @@ function processMonthlyData(collections, distributions) {
   });
 
   // Process distributions
-  const dailyDistributionsByMosque = {};
-
   distributions.forEach((item) => {
     if (!item.distribution_date) return;
     const date = new Date(item.distribution_date);
     const dayKey = date.toISOString().split("T")[0]; // Format: YYYY-MM-DD
-    const mosqueId = item.mosque_id;
+
+    const mosqueId = item.mosque_id || "";
 
     if (!dailyDistributions[dayKey]) {
       dailyDistributions[dayKey] = 0;
@@ -260,16 +297,23 @@ function processMonthlyData(collections, distributions) {
       const date = new Date(day);
       const formattedDay = `${date.toLocaleString("default", { month: "short" })} ${date.getDate()}`;
 
-      // Create an object with mosque IDs for filtering
-      const dayData = {
+      // Create a better-typed dayData object
+      interface DayData {
+        month: string;
+        collections: number;
+        distributions: number;
+        mosqueData: Dictionary<number>;
+        [key: string]: any; // Allow dynamic indexes
+      }
+
+      const dayData: DayData = {
         month: formattedDay, // Keep the property name as 'month' for compatibility
         collections: dailyCollections[day] || 0,
         distributions: dailyDistributions[day] || 0,
-        // Add mosque data for filtering
-        mosqueData: dailyCollectionsByMosque[day] || {},
+        mosqueData: {},
       };
 
-      // Add mosque IDs to the data for filtering
+      // Add mosque-specific collection data
       if (dailyCollectionsByMosque[day]) {
         Object.keys(dailyCollectionsByMosque[day]).forEach((mosqueId) => {
           dayData[`mosque_${mosqueId}`] =
@@ -277,7 +321,7 @@ function processMonthlyData(collections, distributions) {
         });
       }
 
-      // Add mosque distribution data for filtering
+      // Add mosque-specific distribution data
       if (dailyDistributionsByMosque[day]) {
         Object.keys(dailyDistributionsByMosque[day]).forEach((mosqueId) => {
           dayData[`mosque_dist_${mosqueId}`] =

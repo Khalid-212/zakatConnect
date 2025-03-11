@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "../../../supabase/server";
 import DistributionsPage from "./page";
+import DistributionsClient from "./distributions-client";
 
 export default async function DistributionsPageServer() {
   const supabase = await createClient();
@@ -26,7 +27,7 @@ export default async function DistributionsPageServer() {
     .order("created_at", { ascending: false });
 
   return (
-    <DistributionsPage
+    <DistributionsClient
       initialDistributions={distributions || []}
       initialBeneficiaries={beneficiaries || []}
     />
