@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Sidebar from "@/components/sidebar";
-import { Button } from "@/components/ui/button";
-import { UsersRound, Plus, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import Link from "next/link";
+import { useState } from 'react';
+import Sidebar from '@/components/sidebar';
+import { Button } from '@/components/ui/button';
+import { UsersRound, Plus, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import Link from 'next/link';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
 interface Giver {
   id: string;
@@ -41,7 +41,7 @@ export default function GiversClient({
   userRole,
   defaultMosqueId,
 }: GiversClientProps) {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedMosqueId, setSelectedMosqueId] = useState(defaultMosqueId);
 
   // Filter givers based on search term
@@ -61,9 +61,7 @@ export default function GiversClient({
           <div className="flex justify-between items-center mb-8">
             <div>
               <h1 className="text-3xl font-bold">Givers</h1>
-              <p className="text-muted-foreground">
-                Manage zakat givers and donors
-              </p>
+              <p className="text-muted-foreground">Manage zakat givers and donors</p>
             </div>
             <div className="flex gap-3">
               <Link href="/givers/new">
@@ -90,18 +88,16 @@ export default function GiversClient({
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              {userRole === "super-admin" && (
+              {userRole === 'super-admin' && (
                 <Select
-                  value={selectedMosqueId || ""}
-                  onValueChange={(value) =>
-                    setSelectedMosqueId(value === "" ? null : value)
-                  }
+                  value={selectedMosqueId || 'all'}
+                  onValueChange={(value) => setSelectedMosqueId(value === 'all' ? null : value)}
                 >
                   <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="All Mosques" />
+                    <SelectValue placeholder="Select Mosque" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Mosques</SelectItem>
+                    <SelectItem value="all">All Mosques</SelectItem>
                     {/* Mosque options would go here */}
                   </SelectContent>
                 </Select>
@@ -123,36 +119,31 @@ export default function GiversClient({
                     </div>
                     <div>
                       <h3 className="font-semibold text-lg">{giver.name}</h3>
-                      <p className="text-sm text-gray-500">
-                        {giver.code || "No code assigned"}
-                      </p>
+                      <p className="text-sm text-gray-500">{giver.code || 'No code assigned'}</p>
                     </div>
                   </div>
 
                   <div className="space-y-2 mb-4">
                     {giver.email && (
                       <p className="text-sm">
-                        <span className="font-medium">Email:</span>{" "}
-                        {giver.email}
+                        <span className="font-medium">Email:</span> {giver.email}
                       </p>
                     )}
                     {giver.phone && (
                       <p className="text-sm">
-                        <span className="font-medium">Phone:</span>{" "}
-                        {giver.phone}
+                        <span className="font-medium">Phone:</span> {giver.phone}
                       </p>
                     )}
                     {giver.address && (
                       <p className="text-sm">
-                        <span className="font-medium">Address:</span>{" "}
-                        {giver.address}
+                        <span className="font-medium">Address:</span> {giver.address}
                       </p>
                     )}
                     <p className="text-sm">
-                      <span className="font-medium">Total Donations:</span>{" "}
+                      <span className="font-medium">Total Donations:</span>{' '}
                       {totalDonations[giver.id]
                         ? `$${totalDonations[giver.id].toFixed(2)}`
-                        : "$0.00"}
+                        : '$0.00'}
                     </p>
                   </div>
 
