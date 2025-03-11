@@ -4,10 +4,9 @@ const nextConfig = {
   images: {
     domains: ['images.unsplash.com'],
   },
-  // Disable static generation for pages that need Supabase client
+  // Configure static generation and optimization
   experimental: {
-    // Setting this to true ensures pages that need data fetching run on-demand
-    optimizeCss: true,
+    optimizeCss: false, // Disable CSS optimization to avoid critters dependency
   },
   // Set environment variables fallbacks for build time
   env: {
@@ -15,6 +14,8 @@ const nextConfig = {
       process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://your-supabase-url.supabase.co',
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'your-anon-key',
   },
+  // Configure static page generation
+  output: 'standalone',
 };
 
 if (process.env.NEXT_PUBLIC_TEMPO) {
