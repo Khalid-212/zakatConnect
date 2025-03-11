@@ -80,11 +80,6 @@ export default async function StaffPage() {
                       >
                         {staff.role || "clerk"}
                       </span>
-                      {staff.staff_code && (
-                        <span className="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full ">
-                          Code: {staff.staff_code}
-                        </span>
-                      )}
                     </div>
                     <div className="text-gray-600">
                       {new Date(staff.created_at).toLocaleDateString()}
