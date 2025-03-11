@@ -1,62 +1,25 @@
-import { redirect } from "next/navigation";
-import { createClient } from "../../../supabase/client-server";
-import AnalyticsClient from "./analytics-client";
+import { createClient } from "../../../supabase/server";
+import PublicAnalyticsClient from "./public-analytics-client";
 
-export default async function AnalyticsPage() {
-  // Check user authorization
-  await checkUserAccess();
-
-  async function checkUserAccess() {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return redirect("/sign-in");
-    }
-
-    // Get user role
-    const { data: userData } = await supabase
-      .from("users")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    // Only super-admin and admin roles can access analytics
-    if (userData?.role !== "super-admin" && userData?.role !== "admin") {
-      return redirect(
-        "/dashboard?error=You do not have permission to access analytics",
-      );
-    }
-  }
+export default async function PublicAnalyticsPageServer() {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Fetch all mosques for the filter
+  const { data: mosques } = await supabase
+    .from("mosques")
+    .select("id, name")
+    .order("name");
 
-  if (!user) {
-    return redirect("/sign-in");
-  }
-
-  // Fetch analytics data
+  // Fetch analytics data from all mosques
   const { data: collections, error: collectionsError } = await supabase
     .from("zakat_collections")
     .select(
-      "amount, type, collection_date, product_type_id, product_types(name, price)",
+      "amount, type, collection_date, mosque_id, product_type_id, product_types(name, price), mosques(name)",
     );
 
   const { data: distributions, error: distributionsError } = await supabase
     .from("zakat_distributions")
-    .select("amount, type, distribution_date");
-
-  // Fetch approved beneficiaries (these count as distributions)
-  const { data: approvedBeneficiaries, error: beneficiariesError } =
-    await supabase
-      .from("beneficiaries")
-      .select("family_members, status")
-      .eq("status", "approved");
+    .select("amount, type, distribution_date, mosque_id, mosques(name)");
 
   // Get total beneficiaries and givers count
   const { count: beneficiariesCount } = await supabase
@@ -91,32 +54,35 @@ export default async function AnalyticsPage() {
   // Current balance is the difference between collected and distributed
   const balance = totalCollected - totalDistributed;
 
-  // Process product distribution for pie chart
-  const productCounts = {};
-  const productTotals = {};
+  // Process data for monthly trends
+  const monthlyData = processMonthlyData(
+    collections || [],
+    distributions || [],
+  );
 
+  // Process mosque data for pie chart
+  const mosqueTotals = {};
   collections?.forEach((collection) => {
-    const productName = collection.product_types?.name || "Other";
-    if (!productCounts[productName]) {
-      productCounts[productName] = 0;
-      productTotals[productName] = 0;
+    const mosqueName = collection.mosques?.name || "Unknown Mosque";
+    if (!mosqueTotals[mosqueName]) {
+      mosqueTotals[mosqueName] = 0;
     }
-    productCounts[productName]++;
 
     // For in-kind donations, calculate based on product type and quantity
-    if (collection.type === "in_kind" && collection.product_type_id) {
-      // Get the product price and calculate the approximate value
-      const productPrice = collection.product_types?.price || 0;
-      // Assume amount represents kg or quantity of the product
-      productTotals[productName] += (collection.amount || 0) * productPrice;
+    if (
+      collection.type === "in_kind" &&
+      collection.product_type_id &&
+      collection.product_types?.price
+    ) {
+      mosqueTotals[mosqueName] +=
+        (collection.amount || 0) * collection.product_types.price;
     } else {
-      // For cash donations, use the amount directly
-      productTotals[productName] += collection.amount || 0;
+      mosqueTotals[mosqueName] += collection.amount || 0;
     }
   });
 
   // Calculate percentages for pie chart
-  const totalAmount = Object.values(productTotals).reduce(
+  const totalAmount = Object.values(mosqueTotals).reduce(
     (sum: any, amount: any) => sum + amount,
     0,
   ) as number;
@@ -129,9 +95,11 @@ export default async function AnalyticsPage() {
     "#FF8042",
     "#8884d8",
     "#82ca9d",
+    "#ffc658",
+    "#8dd1e1",
   ];
 
-  const productDistribution = Object.entries(productTotals).map(
+  const mosqueDistribution = Object.entries(mosqueTotals).map(
     ([name, amount], index) => ({
       name,
       value: Math.round(((amount as number) / totalAmount) * 100),
@@ -139,21 +107,16 @@ export default async function AnalyticsPage() {
     }),
   );
 
-  // Process data for monthly trends
-  const monthlyData = processMonthlyData(
-    collections || [],
-    distributions || [],
-  );
-
   return (
-    <AnalyticsClient
+    <PublicAnalyticsClient
       totalCollected={totalCollected}
       totalDistributed={totalDistributed}
       balance={balance}
       monthlyData={monthlyData}
-      productDistribution={productDistribution}
+      mosqueDistribution={mosqueDistribution}
       beneficiariesCount={beneficiariesCount || 0}
       giversCount={giversCount || 0}
+      mosques={mosques || []}
     />
   );
 }

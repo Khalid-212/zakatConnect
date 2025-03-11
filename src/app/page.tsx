@@ -246,13 +246,22 @@ export default async function Home() {
             Join mosques across the country who trust ZakatConnect for efficient
             and transparent zakat management.
           </p>
-          <Link
-            href="/sign-up"
-            className="inline-flex items-center px-6 py-3 text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors"
-          >
-            Register Your Mosque
-            <ArrowUpRight className="ml-2 w-4 h-4" />
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/sign-up"
+              className="inline-flex items-center px-6 py-3 text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              Register Your Mosque
+              <ArrowUpRight className="ml-2 w-4 h-4" />
+            </Link>
+            <Link
+              href="/public-analytics"
+              className="inline-flex items-center px-6 py-3 text-primary bg-white border border-primary rounded-lg hover:bg-blue-50 transition-colors"
+            >
+              View Public Analytics
+              <BarChart4 className="ml-2 w-4 h-4" />
+            </Link>
+          </div>
         </div>
       </section>
 

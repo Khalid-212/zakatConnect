@@ -1,5 +1,7 @@
+"use client";
+
 import { redirect } from "next/navigation";
-import { createClient } from "../../../supabase/server";
+import { createClient } from "../../../supabase/client";
 import Sidebar from "@/components/sidebar";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,33 +12,80 @@ import {
   Download,
   UserPlus,
 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { updateDistributionStatus } from "./actions";
 import { ApprovalButton } from "./approval-button";
 
-export default async function DistributionsPage() {
-  const supabase = await createClient();
+export default function DistributionsPage({
+  initialDistributions = [],
+  initialBeneficiaries = [],
+}: {
+  initialDistributions: any[];
+  initialBeneficiaries: any[];
+}) {
+  const [searchCode, setSearchCode] = useState("");
+  const [distributions, setDistributions] = useState(initialDistributions);
+  const [beneficiaries, setBeneficiaries] = useState(initialBeneficiaries);
+  const [filteredBeneficiaries, setFilteredBeneficiaries] =
+    useState(initialBeneficiaries);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Handle search input change
+  const handleSearchChange = async (e) => {
+    const code = e.target.value;
+    setSearchCode(code);
 
-  if (!user) {
-    return redirect("/sign-in");
-  }
+    if (code.length > 2) {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("beneficiaries")
+        .select("*")
+        .ilike("code", `%${code}%`)
+        .order("created_at", { ascending: false });
 
-  // Fetch distributions from database
-  const { data: distributions, error } = await supabase
-    .from("zakat_distributions")
-    .select("*, beneficiaries(name), mosques(name)")
-    .order("distribution_date", { ascending: false });
+      setFilteredBeneficiaries(data || []);
+    } else {
+      setFilteredBeneficiaries(beneficiaries);
+    }
+  };
 
-  // Fetch beneficiaries for approval
-  const { data: beneficiaries } = await supabase
-    .from("beneficiaries")
-    .select("*")
-    .order("created_at", { ascending: false });
+  // Refresh data when needed
+  const refreshData = async () => {
+    const supabase = createClient();
+
+    const { data: newDistributions } = await supabase
+      .from("zakat_distributions")
+      .select("*, beneficiaries(name), mosques(name)")
+      .order("distribution_date", { ascending: false });
+
+    if (newDistributions) {
+      setDistributions(newDistributions);
+    }
+
+    const { data: newBeneficiaries } = await supabase
+      .from("beneficiaries")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (newBeneficiaries) {
+      setBeneficiaries(newBeneficiaries);
+      setFilteredBeneficiaries(newBeneficiaries);
+    }
+  };
+
+  // Initialize filtered beneficiaries and set up global refresh function
+  useEffect(() => {
+    setFilteredBeneficiaries(beneficiaries);
+
+    // Add a global refresh function that can be called from other components
+    window.refreshDistributionsData = refreshData;
+
+    return () => {
+      // Clean up when component unmounts
+      delete window.refreshDistributionsData;
+    };
+  }, [beneficiaries]);
 
   return (
     <div className="flex h-screen">
@@ -97,6 +146,8 @@ export default async function DistributionsPage() {
                 placeholder="Search by beneficiary code"
                 className="pl-10 w-full"
                 name="code"
+                value={searchCode}
+                onChange={handleSearchChange}
               />
               <Button type="submit" className="absolute right-1 top-1 h-8">
                 Search
@@ -114,8 +165,8 @@ export default async function DistributionsPage() {
               </div>
 
               {/* Fetch beneficiaries and show them here */}
-              {beneficiaries && beneficiaries.length > 0 ? (
-                beneficiaries.map((beneficiary) => {
+              {filteredBeneficiaries && filteredBeneficiaries.length > 0 ? (
+                filteredBeneficiaries.map((beneficiary) => {
                   const status = beneficiary.status || "pending";
                   const statusColor =
                     status === "approved"
@@ -210,7 +261,7 @@ export default async function DistributionsPage() {
                   </div>
                   <div className="text-gray-600">
                     {new Date(
-                      distribution.distribution_date
+                      distribution.distribution_date,
                     ).toLocaleDateString()}
                   </div>
                   <div className="text-gray-600">

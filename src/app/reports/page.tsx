@@ -28,6 +28,13 @@ export default async function ReportsPage() {
     .order("collection_date", { ascending: false })
     .limit(3);
 
+  // Fetch distributions for report data
+  const { data: distributions, error: distributionsError } = await supabase
+    .from("zakat_distributions")
+    .select("id, amount, distribution_date, type, status, beneficiaries(name)")
+    .order("distribution_date", { ascending: false })
+    .limit(3);
+
   return (
     <div className="flex h-screen">
       <Sidebar />
@@ -221,8 +228,115 @@ export default async function ReportsPage() {
             </TabsContent>
 
             <TabsContent value="distribution">
-              <div className="bg-white rounded-lg border p-8 text-center text-gray-500">
-                No distribution reports available yet.
+              <div className="bg-white rounded-lg border overflow-hidden">
+                <div className="flex justify-between items-center p-4 border-b">
+                  <div className="relative w-64">
+                    <Input
+                      placeholder="Search distributions..."
+                      className="pl-3"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1"
+                    >
+                      <Download size={14} />
+                      PDF
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1"
+                    >
+                      <Download size={14} />
+                      Excel
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="text-left text-sm font-medium text-gray-500 border-b">
+                        <th className="p-4">ID</th>
+                        <th className="p-4">Date</th>
+                        <th className="p-4">Beneficiary</th>
+                        <th className="p-4">Type</th>
+                        <th className="p-4">Amount</th>
+                        <th className="p-4">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {distributions && distributions.length > 0 ? (
+                        distributions.map((distribution) => (
+                          <tr
+                            key={distribution.id}
+                            className="border-b hover:bg-gray-50"
+                          >
+                            <td className="p-4 font-medium">
+                              {distribution.id.substring(0, 8)}
+                            </td>
+                            <td className="p-4 text-gray-600">
+                              {new Date(
+                                distribution.distribution_date,
+                              ).toLocaleDateString()}
+                            </td>
+                            <td className="p-4 text-gray-600">
+                              {distribution.beneficiaries?.name || "Unknown"}
+                            </td>
+                            <td className="p-4">
+                              <span className="bg-blue-100 text-primary text-xs px-2 py-1 rounded-full">
+                                {distribution.type === "cash"
+                                  ? "Cash"
+                                  : "In-kind"}
+                              </span>
+                            </td>
+                            <td className="p-4 font-medium">
+                              {distribution.amount} ETB
+                            </td>
+                            <td className="p-4">
+                              <span
+                                className={`text-xs px-2 py-1 rounded-full ${
+                                  distribution.status === "approved"
+                                    ? "bg-green-100 text-green-600"
+                                    : distribution.status === "pending"
+                                      ? "bg-yellow-100 text-yellow-600"
+                                      : "bg-red-100 text-red-600"
+                                }`}
+                              >
+                                {distribution.status?.charAt(0).toUpperCase() +
+                                  distribution.status?.slice(1) || "Pending"}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan={6}
+                            className="p-8 text-center text-gray-500"
+                          >
+                            No distribution data available
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="p-4 border-t flex justify-between items-center text-sm text-gray-500">
+                  <div>Showing {distributions?.length || 0} entries</div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" disabled>
+                      Previous
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      Next
+                    </Button>
+                  </div>
+                </div>
               </div>
             </TabsContent>
           </Tabs>

@@ -53,6 +53,11 @@ export function ApprovalButton({
 
         // Refresh the page to reflect the new status
         router.refresh();
+
+        // If we're in a client component with a refresh function, call it
+        if (window.refreshDistributionsData) {
+          window.refreshDistributionsData();
+        }
       } else {
         // Show error toast with the returned message
         toast({

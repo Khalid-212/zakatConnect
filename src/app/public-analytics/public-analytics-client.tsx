@@ -1,8 +1,7 @@
 "use client";
 
-import Sidebar from "@/components/sidebar";
 import { Button } from "@/components/ui/button";
-import { BarChart4, Calendar, Download, Filter } from "lucide-react";
+import { Calendar, Download, Filter } from "lucide-react";
 import {
   LineChart,
   Line,
@@ -15,44 +14,78 @@ import {
   PieChart,
   Pie,
   Cell,
+  BarChart,
+  Bar,
 } from "recharts";
+import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import Link from "next/link";
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 
-// Define colors for the pie chart
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
-
-// Product type distribution will be passed as props
-
-export default function AnalyticsClient(props: {
+export default function PublicAnalyticsClient(props: {
   totalCollected: number;
   totalDistributed: number;
   balance: number;
   monthlyData: any[];
-  productDistribution: { name: string; value: number; color: string }[];
+  mosqueDistribution: { name: string; value: number; color: string }[];
   beneficiariesCount: number;
   giversCount: number;
+  mosques: { id: string; name: string }[];
 }) {
+  const [selectedMosqueId, setSelectedMosqueId] = useState<string | null>(null);
+
   return (
-    <div className="flex h-screen">
-      <Sidebar />
-      <main className="flex-1 overflow-auto bg-gray-50">
-        <div className="p-8 max-w-7xl mx-auto">
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      <main className="flex-1 bg-gray-50 py-12">
+        <div className="container mx-auto px-4">
           {/* Header Section */}
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-3xl font-bold">Analytics</h1>
-              <p className="text-muted-foreground">
-                View zakat collection and distribution analytics
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <Button variant="outline" className="flex items-center gap-2">
-                <Calendar size={16} />
-                This Month
-              </Button>
-              <Button variant="outline" className="flex items-center gap-2">
-                <Download size={16} />
-                Export
-              </Button>
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold mb-4">Public Zakat Analytics</h1>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Transparent insights into zakat collection and distribution across
+              all mosques
+            </p>
+          </div>
+
+          {/* Mosque Filter */}
+          <div className="bg-white rounded-lg border p-6 mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="w-full md:w-64">
+                <label className="block text-sm font-medium mb-2">
+                  Filter by Mosque
+                </label>
+                <Select onValueChange={(value) => setSelectedMosqueId(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Mosques" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Mosques</SelectItem>
+                    {props.mosques.map((mosque) => (
+                      <SelectItem key={mosque.id} value={mosque.id}>
+                        {mosque.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Calendar size={16} />
+                  This Month
+                </Button>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Download size={16} />
+                  Export
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -63,7 +96,7 @@ export default function AnalyticsClient(props: {
               <div className="flex justify-between items-start mb-6">
                 <span className="text-muted-foreground">Total Collected</span>
                 <div className="bg-green-100 p-1 rounded-md">
-                  <BarChart4 className="text-green-600" size={18} />
+                  <div className="text-green-600 font-bold">ETB</div>
                 </div>
               </div>
               <div className="text-3xl font-bold">
@@ -79,7 +112,7 @@ export default function AnalyticsClient(props: {
               <div className="flex justify-between items-start mb-6">
                 <span className="text-muted-foreground">Total Distributed</span>
                 <div className="bg-blue-100 p-1 rounded-md">
-                  <BarChart4 className="text-primary" size={18} />
+                  <div className="text-primary font-bold">ETB</div>
                 </div>
               </div>
               <div className="text-3xl font-bold">
@@ -95,7 +128,7 @@ export default function AnalyticsClient(props: {
               <div className="flex justify-between items-start mb-6">
                 <span className="text-muted-foreground">Current Balance</span>
                 <div className="bg-purple-100 p-1 rounded-md">
-                  <BarChart4 className="text-purple-600" size={18} />
+                  <div className="text-purple-600 font-bold">ETB</div>
                 </div>
               </div>
               <div className="text-3xl font-bold">
@@ -188,17 +221,17 @@ export default function AnalyticsClient(props: {
             </div>
           </div>
 
-          {/* Distribution by Category */}
-          <div className="bg-white rounded-lg border p-6">
+          {/* Distribution by Mosque */}
+          <div className="bg-white rounded-lg border p-6 mb-8">
             <h2 className="text-xl font-semibold mb-6">
-              Distribution by Beneficiary Category
+              Distribution by Mosque
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="h-64 border rounded-lg bg-gray-50 p-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={props.productDistribution}
+                      data={props.mosqueDistribution}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
@@ -209,7 +242,7 @@ export default function AnalyticsClient(props: {
                         `${name}: ${(percent * 100).toFixed(0)}%`
                       }
                     >
-                      {props.productDistribution.map((entry, index) => (
+                      {props.mosqueDistribution.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -218,7 +251,7 @@ export default function AnalyticsClient(props: {
                 </ResponsiveContainer>
               </div>
               <div className="space-y-4">
-                {props.productDistribution.map((category, index) => (
+                {props.mosqueDistribution.map((mosque, index) => (
                   <div
                     key={index}
                     className="flex justify-between items-center p-3 border rounded-lg"
@@ -226,18 +259,46 @@ export default function AnalyticsClient(props: {
                     <div className="flex items-center gap-3">
                       <div
                         className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: category.color }}
+                        style={{ backgroundColor: mosque.color }}
                       ></div>
-                      <span>{category.name}</span>
+                      <span>{mosque.name}</span>
                     </div>
-                    <span className="font-medium">{category.value}%</span>
+                    <span className="font-medium">{mosque.value}%</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
+
+          {/* CTA Section */}
+          <div className="bg-primary text-white rounded-lg p-8 text-center">
+            <h2 className="text-2xl font-bold mb-4">
+              Join the ZakatConnect Community
+            </h2>
+            <p className="text-lg mb-6 max-w-2xl mx-auto">
+              Register your mosque today and be part of our transparent zakat
+              management system.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/sign-up">
+                <Button variant="secondary" size="lg">
+                  Register Your Mosque
+                </Button>
+              </Link>
+              <Link href="/sign-in">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="bg-primary/20 text-white border-white hover:bg-primary/30"
+                >
+                  Sign In
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

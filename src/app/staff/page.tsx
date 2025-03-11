@@ -189,16 +189,17 @@ export default async function StaffPage() {
                   </Label>
                   <Select name="role" required>
                     <SelectTrigger>
-                      <SelectValue placeholder="Clerk" />
+                      <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="super-admin">Super Admin</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
                       <SelectItem value="clerk">Clerk</SelectItem>
-                      <SelectItem value="reporter">Reporter</SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Clerks can register beneficiaries and givers. Reporters can
-                    access reports.
+                    Super Admins can manage all mosques. Admins can manage their
+                    mosque. Clerks can register beneficiaries and givers.
                   </p>
                 </div>
               </div>
