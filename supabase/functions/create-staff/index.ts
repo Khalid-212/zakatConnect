@@ -1,3 +1,5 @@
+/// <reference path="../types.d.ts" />
+
 import { createClient } from "@supabase/supabase-js";
 
 const corsHeaders = {
