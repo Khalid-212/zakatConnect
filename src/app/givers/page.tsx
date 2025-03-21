@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../supabase/server';
-import GiversClient from './givers-client';
+import GiversClient from '@/app/givers/givers-client';
 
 interface Dictionary<T> {
   [key: string]: T;
