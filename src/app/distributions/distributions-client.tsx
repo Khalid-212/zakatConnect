@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { updateDistributionStatus } from './actions';
 import { ApprovalButton } from './approval-button';
 import { createClient } from '../../../supabase/client';
+import { User } from '@supabase/supabase-js';
 import {
   Select,
   SelectContent,
@@ -16,6 +17,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 // Add this at the top of the file
 declare global {
@@ -78,6 +90,32 @@ export default function DistributionsClient({
   const [filteredBeneficiaries, setFilteredBeneficiaries] =
     useState<Beneficiary[]>(initialBeneficiaries);
   const [selectedMosqueId, setSelectedMosqueId] = useState<string | null>(defaultMosqueId);
+  const [isAmountDialogOpen, setIsAmountDialogOpen] = useState(false);
+  const [selectedBeneficiary, setSelectedBeneficiary] = useState<Beneficiary | null>(null);
+  const [amount, setAmount] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    // Get initial user
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   // Handle search input change
   const handleSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,7 +128,7 @@ export default function DistributionsClient({
         .from('beneficiaries')
         .select('*')
         .ilike('code', `%${code}%`)
-        .order('name');
+        .order('created_at', { ascending: false });
 
       if (selectedMosqueId) {
         query.eq('mosque_id', selectedMosqueId);
@@ -148,7 +186,10 @@ export default function DistributionsClient({
       setDistributions(typedDistributions as Distribution[]);
     }
 
-    const beneficiariesQuery = supabase.from('beneficiaries').select('*').order('name');
+    const beneficiariesQuery = supabase
+      .from('beneficiaries')
+      .select('*')
+      .order('created_at', { ascending: false });
 
     if (selectedMosqueId) {
       beneficiariesQuery.eq('mosque_id', selectedMosqueId);
@@ -175,6 +216,74 @@ export default function DistributionsClient({
     };
   }, [beneficiaries]);
 
+  const handleApproveClick = (beneficiary: Beneficiary) => {
+    setSelectedBeneficiary(beneficiary);
+    setIsAmountDialogOpen(true);
+    setAmount('');
+  };
+
+  console.log(selectedBeneficiary);
+
+  const handleSubmit = async () => {
+    if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const supabase = createClient();
+
+      // Update the beneficiary's status
+      const { error: updateError } = await supabase
+        .from('beneficiaries')
+        .update({ status: 'approved' })
+        .eq('id', selectedBeneficiary?.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      // Insert a new record into the zakat_distributions table
+      const { error: insertError } = await supabase.from('zakat_distributions').insert({
+        mosque_id: selectedBeneficiary?.mosque_id,
+        beneficiary_id: selectedBeneficiary?.id,
+        amount: parseFloat(amount),
+        distribution_date: new Date().toISOString(),
+        status: 'approved',
+        type: 'cash',
+        distributed_by: user?.id,
+        description: 'Zakat distribution to ' + selectedBeneficiary?.name,
+      });
+
+      console.log({
+        mosque_id: selectedBeneficiary?.mosque_id,
+        beneficiary_id: selectedBeneficiary?.id,
+        amount: parseFloat(amount),
+        distribution_date: new Date().toISOString(),
+        status: 'approved',
+        // distributed_by: userRole.id,
+        description: 'Zakat distribution to ' + selectedBeneficiary?.name,
+        type: 'cash',
+        distributed_by: user?.id,
+      });
+
+      if (insertError) {
+        throw insertError;
+      }
+
+      toast.success('Beneficiary approved and distribution recorded successfully!');
+      setIsAmountDialogOpen(false);
+      router.refresh();
+    } catch (error) {
+      console.error('Error updating status or inserting distribution:', error);
+      toast.error('An error occurred while processing the request');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="flex h-screen">
       <Sidebar />
@@ -187,12 +296,14 @@ export default function DistributionsClient({
               <p className="text-muted-foreground">Manage zakat distributions to beneficiaries</p>
             </div>
             <div className="flex gap-3">
-              <Link href="/distributions/new">
-                <Button className="flex items-center gap-2">
-                  <Plus size={16} />
-                  Add Distribution
-                </Button>
-              </Link>
+              {userRole !== 'clerk' && (
+                <Link href="/distributions/new">
+                  <Button className="flex items-center gap-2">
+                    <Plus size={16} />
+                    Add Distribution
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
 
@@ -300,24 +411,10 @@ export default function DistributionsClient({
                         </span>
                       </div>
                       <div className="flex gap-2">
-                        <ApprovalButton
-                          status={status}
-                          action={updateDistributionStatus}
-                          id={beneficiary.id}
-                          newStatus="approved"
-                          label="Approve"
-                          className="text-green-600 border-green-200 hover:bg-green-50"
-                        />
-
-                        {status !== 'pending' && (
-                          <ApprovalButton
-                            status={status}
-                            action={updateDistributionStatus}
-                            id={beneficiary.id}
-                            newStatus="rejected"
-                            label="Reject"
-                            className="text-red-600 border-red-200 hover:bg-red-50"
-                          />
+                        {status == 'pending' && (
+                          <div className="border-red-500 bg-white text-green-600 hover:bg-green-50">
+                            <Button onClick={() => handleApproveClick(beneficiary)}>Approve</Button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -364,7 +461,7 @@ export default function DistributionsClient({
                     {distribution.beneficiaries?.name || 'Unknown'} (
                     {distribution.beneficiaries?.code || 'N/A'})
                   </div>
-                  <div className="text-gray-600">${distribution.amount.toFixed(2)}</div>
+                  <div className="text-gray-600">{distribution.amount.toFixed(2)} ETB</div>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm">
                       View Details
@@ -380,6 +477,48 @@ export default function DistributionsClient({
           </div>
         </div>
       </main>
+
+      {/* Amount Dialog */}
+      <Dialog
+        open={isAmountDialogOpen}
+        onOpenChange={(open) => !open && setIsAmountDialogOpen(false)}
+      >
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Enter Distribution Amount</DialogTitle>
+            <DialogDescription>
+              Please enter the amount to be distributed to {selectedBeneficiary?.name}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="amount">Amount (ETB)</Label>
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                min="0"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="Enter amount"
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsAmountDialogOpen(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting ? 'Processing...' : 'Approve'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

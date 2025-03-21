@@ -209,7 +209,7 @@ export default async function Home() {
               <div className="text-blue-100">Mosques Registered</div>
             </div>
             <div>
-              <div className="text-4xl font-bold mb-2">$500K+</div>
+              <div className="text-4xl font-bold mb-2">500K ETB +</div>
               <div className="text-blue-100">Zakat Collected</div>
             </div>
             <div>

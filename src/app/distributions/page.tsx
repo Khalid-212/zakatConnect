@@ -16,11 +16,6 @@ export default async function DistributionsPage() {
   // Get user role and associated mosque
   const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single();
 
-  // Only super-admin and admin roles can access distributions
-  if (userData?.role !== 'super-admin' && userData?.role !== 'admin') {
-    return redirect('/dashboard?error=You do not have permission to access distributions');
-  }
-
   // Get mosque admin's mosque if not super-admin
   let defaultMosqueId = null;
   if (userData?.role !== 'super-admin') {

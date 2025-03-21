@@ -19,6 +19,9 @@ import {
 import { toast } from 'sonner';
 import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '../../../../supabase/client';
+import { useTranslation } from '@/lib/translations/useTranslation';
+import { languages, Language } from '@/lib/translations';
+import Loading from '@/app/loading';
 
 interface Mosque {
   id: string;
@@ -46,6 +49,13 @@ export default function NewBeneficiaryPage() {
   const [calculatedAmount, setCalculatedAmount] = useState<number>(0);
   const [beneficiaryCode, setBeneficiaryCode] = useState<string>('');
   const supabase = createClient();
+
+  const { t, language, changeLanguage } = useTranslation();
+
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Generate a unique beneficiary code
   const generateBeneficiaryCode = useCallback(async () => {
@@ -138,7 +148,7 @@ export default function NewBeneficiaryPage() {
         }
       } catch (error) {
         console.error('Error loading data:', error);
-        toast.error('Failed to load mosque data');
+        toast.error(t.common.errorOccurred);
       } finally {
         setIsLoading(false);
       }
@@ -163,7 +173,7 @@ export default function NewBeneficiaryPage() {
     if (userRole === 'super-admin') {
       const selectedMosque = formData.get('mosque_id');
       if (!selectedMosque) {
-        toast.error('Please select a mosque');
+        toast.error(t.givers.selectMosque);
         return;
       }
     } else if (selectedMosqueId) {
@@ -180,8 +190,8 @@ export default function NewBeneficiaryPage() {
     }
   }
 
-  if (isLoading) {
-    return <div>Loading...</div>;
+  if (!isClient || isLoading) {
+    return <Loading />;
   }
 
   return (
@@ -189,6 +199,22 @@ export default function NewBeneficiaryPage() {
       <Sidebar />
       <main className="flex-1 overflow-auto bg-gray-50">
         <div className="p-8 max-w-3xl mx-auto">
+          {/* Language Selector */}
+          <div className="flex justify-end mb-4">
+            <Select value={language} onValueChange={(value: Language) => changeLanguage(value)}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder={t.common.language} />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(languages).map(([code, name]) => (
+                  <SelectItem key={code} value={code}>
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Header Section */}
           <div className="flex items-center gap-4 mb-8">
             <Link href="/beneficiaries">
@@ -197,8 +223,8 @@ export default function NewBeneficiaryPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold">Register New Beneficiary</h1>
-              <p className="text-muted-foreground">Add a new zakat beneficiary to the system</p>
+              <h1 className="text-2xl font-bold">{t.beneficiaries.addBeneficiary}</h1>
+              <p className="text-muted-foreground">{t.beneficiaries.subtitle}</p>
             </div>
           </div>
 
@@ -208,10 +234,10 @@ export default function NewBeneficiaryPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {userRole === 'super-admin' && (
                   <div className="space-y-2">
-                    <Label htmlFor="mosque_id">Mosque</Label>
+                    <Label htmlFor="mosque_id">{t.givers.selectMosque} *</Label>
                     <Select name="mosque_id" required>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select mosque" />
+                        <SelectValue placeholder={t.givers.selectMosque} />
                       </SelectTrigger>
                       <SelectContent>
                         {mosques.map((mosque) => (
@@ -225,17 +251,17 @@ export default function NewBeneficiaryPage() {
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input id="name" name="name" placeholder="Enter full name" required />
+                  <Label htmlFor="name">{t.beneficiaries.name} *</Label>
+                  <Input id="name" name="name" placeholder={t.beneficiaries.name} required />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="region">Region</Label>
+                  <Label htmlFor="region">{t.common.status} *</Label>
                   <Select name="region" required>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select region" />
+                      <SelectValue placeholder={t.common.status} />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="h-40 overflow-scroll">
                       <SelectItem value="Addis Ababa">Addis Ababa</SelectItem>
                       <SelectItem value="Afar">Afar</SelectItem>
                       <SelectItem value="Amhara">Amhara</SelectItem>
@@ -260,32 +286,37 @@ export default function NewBeneficiaryPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
-                  <Input id="city" name="city" placeholder="Enter city" required />
+                  <Label htmlFor="city">{t.beneficiaries.address} *</Label>
+                  <Input id="city" name="city" placeholder={t.beneficiaries.address} required />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="sub_city">Sub-City</Label>
-                  <Input id="sub_city" name="sub_city" placeholder="Enter sub-city" required />
+                  <Label htmlFor="sub_city">{t.beneficiaries.address} *</Label>
+                  <Input
+                    id="sub_city"
+                    name="sub_city"
+                    placeholder={t.beneficiaries.address}
+                    required
+                  />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="woreda">Woreda</Label>
-                  <Input id="woreda" name="woreda" placeholder="Enter woreda" required />
+                  <Label htmlFor="woreda">{t.beneficiaries.address} *</Label>
+                  <Input id="woreda" name="woreda" placeholder={t.beneficiaries.address} required />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input id="phone" name="phone" placeholder="Enter phone number" required />
+                  <Label htmlFor="phone">{t.givers.phone} *</Label>
+                  <Input id="phone" name="phone" placeholder={t.givers.phone} required />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="family_members">Number of Family Members</Label>
+                  <Label htmlFor="family_members">{t.beneficiaries.familySize} *</Label>
                   <Input
                     id="family_members"
                     name="family_members"
                     type="number"
-                    placeholder="Enter number of family members"
+                    placeholder={t.beneficiaries.familySize}
                     required
                     defaultValue="1"
                     onChange={(e) => setFamilyMembers(parseInt(e.target.value) || 1)}
@@ -293,7 +324,7 @@ export default function NewBeneficiaryPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="calculated_amount">Calculated Amount (ETB)</Label>
+                  <Label htmlFor="calculated_amount">{t.common.amount} (ETB)</Label>
                   <Input
                     id="calculated_amount"
                     value={calculatedAmount.toFixed(2)}
@@ -301,12 +332,12 @@ export default function NewBeneficiaryPage() {
                     className="bg-gray-50"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Based on family members × 2.5 × wheat price
+                    {t.beneficiaries.familySize}: {familyMembers} x 2.5 x {wheatPrice}
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="beneficiary_code">Beneficiary Code</Label>
+                  <Label htmlFor="beneficiary_code">{t.common.id}</Label>
                   <Input
                     id="beneficiary_code"
                     value={beneficiaryCode}
@@ -316,11 +347,11 @@ export default function NewBeneficiaryPage() {
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="remark">Remark</Label>
+                  <Label htmlFor="remark">{t.beneficiaries.notes}</Label>
                   <Textarea
                     id="remark"
                     name="remark"
-                    placeholder="Add any additional information"
+                    placeholder={t.beneficiaries.notes}
                     rows={4}
                   />
                 </div>
@@ -329,10 +360,10 @@ export default function NewBeneficiaryPage() {
               <div className="flex justify-end gap-3 pt-4">
                 <Link href="/beneficiaries">
                   <Button variant="outline" type="button">
-                    Cancel
+                    {t.common.cancel}
                   </Button>
                 </Link>
-                <Button type="submit">Register Beneficiary</Button>
+                <Button type="submit">{t.common.save}</Button>
               </div>
             </form>
           </div>
